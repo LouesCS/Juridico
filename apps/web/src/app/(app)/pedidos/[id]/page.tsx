@@ -1,0 +1,1 @@
+import type { Metadata } from 'next'; import { RequestDetailPage } from '@/features/requests'; export const metadata:Metadata={title:'Pedido'}; export default async function Page({params}:{params:Promise<{id:string}>}){return <RequestDetailPage id={(await params).id}/>}

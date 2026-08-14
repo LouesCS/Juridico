@@ -1,0 +1,2274 @@
+// Quilombo Dev — schema.prisma (Fase 1)
+//
+// Implementa integralmente a modelagem oficial de docs/database/03 a 06.
+// Convenções: docs/database/02-convencoes-dados.md (snake_case no banco via
+// @map/@@map, camelCase no Prisma, UUID, soft delete, versionamento otimista).
+//
+// PROMPT 5C Etapa 2/3 (docs/backend-implementation/03-multitenancy.md,
+// 02-database.md): RLS, extensões pg_trgm/unaccent e as colunas tsvector
+// geradas (`buscaTsv`, declaradas abaixo como Unsupported("tsvector") só
+// para o Prisma não tentar removê-las por drift) já têm migration SQL
+// manual escrita em prisma/migrations/20260731000001_enable_rls e
+// prisma/migrations/20260731000002_search_extensions — NUNCA EXECUTADA
+// contra Postgres real neste ambiente (sem Docker/Postgres disponível).
+//
+// O que este arquivo/estas migrations ainda NÃO representam:
+//   - Roles de banco reais (app_runtime/app_migration) — a migration de RLS
+//     assume que `app_runtime` existe, mas não a cria (isso é provisionamento
+//     de infraestrutura, fora do escopo de uma migration de schema)
+//   - Particionamento de log_auditoria por mês
+//   - Triggers de normalização de e-mail
+//   - `documentos.texto_extraido` (citado em docs/database/09 §9.3, nunca
+//     modelado como coluna na Fase 1 implementada — ver nota na migration
+//     20260731000002_search_extensions)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// IDENTITY
+// ============================================================================
+
+enum TemaUsuario {
+  CLARO
+  ESCURO
+  SISTEMA
+}
+
+enum StatusUsuario {
+  PENDENTE
+  ATIVO
+  INATIVO
+  BLOQUEADO
+}
+
+enum ProvedorAuth {
+  LOCAL
+  GOOGLE
+  MICROSOFT
+  SAML
+}
+
+enum MotivoRevogacaoSessao {
+  LOGOUT
+  TROCA_SENHA
+  REUSO_DETECTADO
+  ADMIN
+  EXPIRACAO
+}
+
+model Usuario {
+  id                String        @id @default(uuid()) @db.Uuid
+  nome              String
+  sobrenome         String
+  email             String
+  emailVerificadoEm DateTime?     @map("email_verificado_em") @db.Timestamptz
+  senhaHash         String?       @map("senha_hash")
+  avatarUrl         String?       @map("avatar_url")
+  telefone          String?
+  idioma            String        @default("pt-BR")
+  fusoHorario       String        @default("America/Sao_Paulo") @map("fuso_horario")
+  tema              TemaUsuario   @default(SISTEMA)
+  status            StatusUsuario @default(PENDENTE)
+  mfaHabilitado     Boolean       @default(false) @map("mfa_habilitado")
+  mfaSegredo        String?       @map("mfa_segredo")
+  ultimoAcessoEm    DateTime?     @map("ultimo_acesso_em") @db.Timestamptz
+  criadoEm          DateTime      @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm      DateTime      @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm        DateTime?     @map("excluido_em") @db.Timestamptz
+
+  identidades UserIdentity[]
+  sessoes     Sessao[]
+  membros     Membro[]
+
+  @@unique([email], map: "uq_usuarios_email")
+  @@map("usuarios")
+}
+
+model UserIdentity {
+  id                        String       @id @default(uuid()) @db.Uuid
+  usuarioId                 String       @map("usuario_id") @db.Uuid
+  provider                  ProvedorAuth
+  providerAccountId         String?      @map("provider_account_id")
+  emailNoProvedor           String?      @map("email_no_provedor")
+  emailVerificadoNoProvedor Boolean      @default(false) @map("email_verificado_no_provedor")
+  accessTokenCriptografado  Bytes?       @map("access_token_criptografado")
+  refreshTokenCriptografado Bytes?       @map("refresh_token_criptografado")
+  escopos                   String[]     @default([])
+  expiraEm                  DateTime?    @map("expira_em") @db.Timestamptz
+  criadoEm                  DateTime     @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm              DateTime     @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId], map: "uq_user_identity_provider_account")
+  @@index([usuarioId], map: "idx_user_identity_usuario")
+  @@map("user_identities")
+}
+
+model TokenRecuperacaoSenha {
+  id        String    @id @default(uuid()) @db.Uuid
+  usuarioId String    @map("usuario_id") @db.Uuid
+  tokenHash String    @map("token_hash")
+  expiraEm  DateTime  @map("expira_em") @db.Timestamptz
+  usadoEm   DateTime? @map("usado_em") @db.Timestamptz
+  criadoEm  DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+
+  @@unique([tokenHash], map: "uq_token_recuperacao_senha")
+  @@index([usuarioId], map: "idx_token_recuperacao_usuario")
+  @@map("tokens_recuperacao_senha")
+}
+
+model Sessao {
+  id                String                 @id @default(uuid()) @db.Uuid
+  usuarioId         String                 @map("usuario_id") @db.Uuid
+  escritorioAtivoId String                 @map("escritorio_ativo_id") @db.Uuid
+  familiaId         String                 @map("familia_id") @db.Uuid
+  refreshTokenHash  String                 @map("refresh_token_hash")
+  ip                String?
+  userAgent         String?                @map("user_agent")
+  dispositivo       String?
+  criadaEm          DateTime               @default(now()) @map("criada_em") @db.Timestamptz
+  ultimoUsoEm       DateTime               @default(now()) @map("ultimo_uso_em") @db.Timestamptz
+  expiraEm          DateTime               @map("expira_em") @db.Timestamptz
+  revogadaEm        DateTime?              @map("revogada_em") @db.Timestamptz
+  motivoRevogacao   MotivoRevogacaoSessao? @map("motivo_revogacao")
+
+  usuario    Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  escritorio Escritorio @relation(fields: [escritorioAtivoId], references: [id], onDelete: Restrict)
+
+  @@index([usuarioId], map: "idx_sessoes_usuario")
+  @@index([familiaId], map: "idx_sessoes_familia")
+  @@map("sessoes")
+}
+
+// ============================================================================
+// OFFICES
+// ============================================================================
+
+enum StatusEscritorio {
+  TRIAL
+  ATIVO
+  SUSPENSO
+  CANCELADO
+}
+
+enum PlanoEscritorio {
+  TRIAL
+  ESSENCIAL
+  PROFISSIONAL
+  ENTERPRISE
+}
+
+model Escritorio {
+  id                  String           @id @default(uuid()) @db.Uuid
+  razaoSocial         String?          @map("razao_social")
+  nomeFantasia        String           @map("nome_fantasia")
+  slug                String
+  cnpj                String?
+  email               String
+  telefone            String?
+  enderecoLogradouro  String?          @map("endereco_logradouro")
+  enderecoNumero      String?          @map("endereco_numero")
+  enderecoComplemento String?          @map("endereco_complemento")
+  enderecoBairro      String?          @map("endereco_bairro")
+  enderecoCidade      String?          @map("endereco_cidade")
+  enderecoUf          String?          @map("endereco_uf") @db.Char(2)
+  enderecoCep         String?          @map("endereco_cep")
+  fusoHorario         String           @default("America/Sao_Paulo") @map("fuso_horario")
+  idioma              String           @default("pt-BR")
+  status              StatusEscritorio @default(TRIAL)
+  plano               PlanoEscritorio  @default(TRIAL)
+  configuracoes       Json             @default("{}")
+  criadoEm            DateTime         @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm        DateTime         @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm          DateTime?        @map("excluido_em") @db.Timestamptz
+
+  sessoes                     Sessao[]
+  membros                     Membro[]
+  convites                    Convite[]
+  papeis                      Papel[]
+  equipes                     Equipe[]
+  clientes                    Cliente[]
+  processos                   Processo[]
+  configuracoesCaptura        ConfiguracaoCaptura[]
+  historicosCaptura           HistoricoSincronizacaoCaptura[]
+  movimentosCapturados        MovimentoJudicialCapturado[]
+  movimentacoesExtrajudiciais MovimentacaoExtrajudicial[]
+  publicacoesCapturadas       PublicacaoJudicialCapturada[]
+  pastasJuridicas             PastaJuridica[]
+  prefixosPastasJuridicas     PrefixoPastaJuridica[]
+  opcoesPastasJuridicas       OpcaoPastaJuridica[]
+  pedidos                     Pedido[]
+
+  camposExtra         CampoExtra[]
+  camposObrigatorios  CampoObrigatorio[]
+  conjuntosValores    ConjuntoValores[]
+  categoriasTarefa    CategoriaTarefa[]
+  gruposColaboradores GrupoColaboradores[]
+  cargos              Cargo[]
+  modelosTarefa       ModeloTarefa[]
+  feriados            Feriado[]
+
+  tarefas            Tarefa[]
+  tarefaRecorrencias TarefaRecorrencia[]
+
+  @@unique([slug], map: "uq_escritorios_slug")
+  @@map("escritorios")
+}
+
+// ============================================================================
+// MEMBERSHIPS
+// ============================================================================
+
+enum StatusMembro {
+  ATIVO
+  INATIVO
+  SUSPENSO
+}
+
+enum StatusConvite {
+  PENDENTE
+  ACEITO
+  EXPIRADO
+  REVOGADO
+}
+
+enum EscopoPermissao {
+  ALL
+  TEAM
+  ASSIGNED
+  OWN
+}
+
+enum EfeitoPermissao {
+  CONCEDER
+  NEGAR
+}
+
+model Papel {
+  id           String   @id @default(uuid()) @db.Uuid
+  escritorioId String?  @map("escritorio_id") @db.Uuid
+  nome         String
+  descricao    String?
+  nivel        Int
+  ehSistema    Boolean  @default(false) @map("eh_sistema")
+  criadoEm     DateTime @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm DateTime @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  escritorio Escritorio?      @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  membros    Membro[]
+  permissoes PapelPermissao[]
+
+  @@index([escritorioId], map: "idx_papeis_escritorio")
+  @@map("papeis")
+}
+
+model Permissao {
+  id        String          @id @default(uuid()) @db.Uuid
+  chave     String
+  recurso   String
+  acao      String
+  escopo    EscopoPermissao
+  categoria String
+  descricao String
+
+  papeis          PapelPermissao[]
+  overridesMembro PermissaoUsuario[]
+
+  @@unique([chave], map: "uq_permissoes_chave")
+  @@map("permissoes")
+}
+
+model PapelPermissao {
+  papelId     String @map("papel_id") @db.Uuid
+  permissaoId String @map("permissao_id") @db.Uuid
+
+  papel     Papel     @relation(fields: [papelId], references: [id], onDelete: Cascade)
+  permissao Permissao @relation(fields: [permissaoId], references: [id], onDelete: Cascade)
+
+  @@id([papelId, permissaoId])
+  @@map("papel_permissao")
+}
+
+model Equipe {
+  id           String   @id @default(uuid()) @db.Uuid
+  escritorioId String   @map("escritorio_id") @db.Uuid
+  nome         String
+  liderId      String?  @map("lider_id") @db.Uuid
+  criadoEm     DateTime @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm DateTime @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  escritorio Escritorio @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  membros    Membro[]
+
+  @@map("equipes")
+}
+
+model Membro {
+  id           String  @id @default(uuid()) @db.Uuid
+  // Nullable a partir do módulo Colaboradores — um colaborador pode ser
+  // cadastrado sem nunca ganhar acesso ao sistema (nenhuma conta `Usuario`
+  // vinculada). Quando o acesso é concedido e o convite aceito,
+  // `AcceptInvitationUseCase` preenche este campo (cria ou reaproveita um
+  // `Usuario` pelo e-mail) — nunca o contrário.
+  usuarioId    String? @map("usuario_id") @db.Uuid
+  escritorioId String  @map("escritorio_id") @db.Uuid
+  papelId      String  @map("papel_id") @db.Uuid
+  equipeId     String? @map("equipe_id") @db.Uuid
+
+  // Identidade do colaborador — fonte canônica para o módulo Colaboradores,
+  // preenchida independentemente de haver conta de acesso. Para membros já
+  // existentes (pré-módulo Colaboradores), a migration faz backfill a partir
+  // de `usuario.nome`/`usuario.email`. Quando o acesso é concedido, o
+  // `Usuario` criado/vinculado recebe estes mesmos valores — evita duas
+  // fontes de verdade divergentes para quem já tem login.
+  nome           String
+  email          String
+  nomeSocial     String?      @map("nome_social")
+  cpf            String?
+  rg             String?
+  dataNascimento DateTime?    @map("data_nascimento") @db.Date
+  estadoCivil    EstadoCivil? @map("estado_civil")
+  profissao      String?
+  nomeMae        String?      @map("nome_mae")
+  nomePai        String?      @map("nome_pai")
+  anotacoes      String?      @db.Text
+  fotoUrl        String?      @map("foto_url")
+
+  // Contato — campos únicos (não array como em `Cliente.emails`/`telefones`):
+  // `email` acima tem papel funcional (e-mail de convite/login quando o
+  // acesso é concedido), não apenas informativo.
+  telefone String?
+  celular  String?
+  whatsapp String?
+
+  // Endereço — mesmos nomes/prefixo de `Cliente` (`enderecoUf`, não
+  // `enderecoEstado`) por consistência entre os dois cadastros de pessoa.
+  enderecoLogradouro  String? @map("endereco_logradouro")
+  enderecoNumero      String? @map("endereco_numero")
+  enderecoComplemento String? @map("endereco_complemento")
+  enderecoBairro      String? @map("endereco_bairro")
+  enderecoCidade      String? @map("endereco_cidade")
+  enderecoUf          String? @map("endereco_uf") @db.Char(2)
+  enderecoCep         String? @map("endereco_cep")
+  enderecoPais        String? @map("endereco_pais")
+
+  // Dados profissionais. `cargo` (texto livre) é o campo legado, mantido só
+  // para leitura de registros antigos — `cargoId` (catálogo `Cargo`,
+  // Configuration Engine) é o campo ativo a partir do módulo Colaboradores.
+  cargo         String?
+  cargoId       String?   @map("cargo_id") @db.Uuid
+  departamento  String?
+  numeroOab     String?   @map("numero_oab")
+  ufOab         String?   @map("uf_oab") @db.Char(2)
+  situacaoOab   String?   @map("situacao_oab")
+  observacaoOab String?   @map("observacao_oab")
+  dataEntrada   DateTime? @map("data_entrada") @db.Date
+  responsavelId String?   @map("responsavel_id") @db.Uuid
+
+  status                   StatusMembro @default(ATIVO)
+  entrouEm                 DateTime     @default(now()) @map("entrou_em") @db.Timestamptz
+  convidadoPorId           String?      @map("convidado_por_id") @db.Uuid
+  dataAceiteConvite        DateTime?    @map("data_aceite_convite") @db.Timestamptz
+  configuracoesEspecificas Json         @default("{}") @map("configuracoes_especificas")
+  desativadoEm             DateTime?    @map("desativado_em") @db.Timestamptz
+  desativadoPorId          String?      @map("desativado_por_id") @db.Uuid
+  criadoEm                 DateTime     @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm             DateTime     @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  usuario       Usuario?   @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  escritorio    Escritorio @relation(fields: [escritorioId], references: [id], onDelete: Restrict)
+  papel         Papel      @relation(fields: [papelId], references: [id], onDelete: Restrict)
+  equipe        Equipe?    @relation(fields: [equipeId], references: [id], onDelete: SetNull)
+  cargoCatalogo Cargo?     @relation(fields: [cargoId], references: [id], onDelete: SetNull)
+  responsavel   Membro?    @relation("MembroResponsavel", fields: [responsavelId], references: [id], onDelete: SetNull)
+
+  permissoesOverride                     PermissaoUsuario[]
+  convitesEmitidos                       Convite[]                                @relation("ConvitesEmitidosPeloMembro")
+  convitesRecebidos                      Convite[]                                @relation("ConviteParaMembro")
+  gruposColaboradores                    GrupoColaboradorMembro[]
+  subordinados                           Membro[]                                 @relation("MembroResponsavel")
+  eventosTimeline                        EventoTimeline[]
+  estadosPublicacao                      PublicacaoEstadoUsuario[]
+  estadosMovimento                       MovimentoEstadoUsuario[]
+  movimentacoesExtrajudiciaisResponsavel MovimentacaoExtrajudicial[]              @relation("MovimentacaoExtrajudicialResponsavel")
+  estadosMovimentoExtrajudicial          MovimentacaoExtrajudicialEstadoUsuario[]
+
+  @@unique([usuarioId, escritorioId], map: "uq_membros_usuario_escritorio")
+  @@index([escritorioId, status], map: "idx_membros_escritorio_status")
+  @@index([papelId], map: "idx_membros_papel")
+  @@index([escritorioId, cpf], map: "idx_membros_escritorio_cpf")
+  @@index([escritorioId, nome], map: "idx_membros_escritorio_nome")
+  @@index([cargoId], map: "idx_membros_cargo")
+  @@map("membros")
+}
+
+model PermissaoUsuario {
+  id             String          @id @default(uuid()) @db.Uuid
+  membroId       String          @map("membro_id") @db.Uuid
+  permissaoId    String          @map("permissao_id") @db.Uuid
+  efeito         EfeitoPermissao
+  concedidaPorId String          @map("concedida_por_id") @db.Uuid
+  expiraEm       DateTime?       @map("expira_em") @db.Timestamptz
+  criadoEm       DateTime        @default(now()) @map("criado_em") @db.Timestamptz
+
+  membro    Membro    @relation(fields: [membroId], references: [id], onDelete: Cascade)
+  permissao Permissao @relation(fields: [permissaoId], references: [id], onDelete: Cascade)
+
+  @@unique([membroId, permissaoId], map: "uq_permissao_usuario")
+  @@map("permissoes_usuario")
+}
+
+model Convite {
+  id             String        @id @default(uuid()) @db.Uuid
+  escritorioId   String        @map("escritorio_id") @db.Uuid
+  email          String
+  papelId        String        @map("papel_id") @db.Uuid
+  tokenHash      String        @map("token_hash")
+  convidadoPorId String        @map("convidado_por_id") @db.Uuid
+  // Preenchido quando o convite é para CONCEDER ACESSO a um colaborador
+  // (`Membro`) já cadastrado sem conta — `AcceptInvitationUseCase` atualiza
+  // esse `Membro` (define `usuarioId`) em vez de criar um novo. Nulo no
+  // fluxo tradicional de convite direto (sem colaborador pré-existente).
+  membroId       String?       @map("membro_id") @db.Uuid
+  expiraEm       DateTime      @map("expira_em") @db.Timestamptz
+  status         StatusConvite @default(PENDENTE)
+  aceitoPorId    String?       @map("aceito_por_id") @db.Uuid
+  dataAceite     DateTime?     @map("data_aceite") @db.Timestamptz
+  criadoEm       DateTime      @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm   DateTime      @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  escritorio   Escritorio @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  convidadoPor Membro     @relation("ConvitesEmitidosPeloMembro", fields: [convidadoPorId], references: [id], onDelete: Restrict)
+  membro       Membro?    @relation("ConviteParaMembro", fields: [membroId], references: [id], onDelete: SetNull)
+
+  @@unique([tokenHash], map: "uq_convites_token")
+  @@index([escritorioId, email, status], map: "idx_convites_escritorio_email_status")
+  @@map("convites")
+}
+
+// ============================================================================
+// CLIENTS
+// ============================================================================
+
+enum TipoCliente {
+  PESSOA_FISICA
+  PESSOA_JURIDICA
+}
+
+enum StatusCliente {
+  ATIVO
+  INATIVO
+  PROSPECT
+}
+
+// Adicionado no Prompt "Clientes e Contatos" — um cadastro pode ser
+// tratado como Cliente (parte em processos), Contato (pessoa de referência
+// sem processo próprio, ex.: cônjuge, sócio, testemunha) ou os dois ao mesmo
+// tempo. Dimensão independente de `TipoCliente` (Pessoa Física/Jurídica) e
+// de `StatusCliente` (ciclo de vida) — nunca confundir as três.
+enum TipoRelacionamentoCliente {
+  CLIENTE
+  CONTATO
+  CLIENTE_E_CONTATO
+}
+
+// Só se aplica a Pessoa Física — mantido como enum fixo (não como Conjunto
+// de Valores do Configuration Engine) porque esta Sprint está proibida de
+// alterar o Configuration Engine, e o conjunto de opções é um vocabulário
+// civil universal, não algo que cada escritório precise customizar.
+enum EstadoCivil {
+  SOLTEIRO
+  CASADO
+  DIVORCIADO
+  VIUVO
+  UNIAO_ESTAVEL
+}
+
+model Cliente {
+  id                      String                    @id @default(uuid()) @db.Uuid
+  escritorioId            String                    @map("escritorio_id") @db.Uuid
+  tipo                    TipoCliente
+  categoriaRelacionamento TipoRelacionamentoCliente @default(CLIENTE) @map("categoria_relacionamento")
+  nome                    String
+  nomeSocial              String?                   @map("nome_social")
+  razaoSocial             String?                   @map("razao_social")
+  cpf                     String?
+  cnpj                    String?
+  rg                      String?
+  emails                  String[]                  @default([])
+  telefones               String[]                  @default([])
+  telefoneResidencial     String?                   @map("telefone_residencial")
+  telefoneResponsavel     String?                   @map("telefone_responsavel")
+  enderecoLogradouro      String?                   @map("endereco_logradouro")
+  enderecoNumero          String?                   @map("endereco_numero")
+  enderecoComplemento     String?                   @map("endereco_complemento")
+  enderecoBairro          String?                   @map("endereco_bairro")
+  enderecoCidade          String?                   @map("endereco_cidade")
+  enderecoUf              String?                   @map("endereco_uf") @db.Char(2)
+  enderecoCep             String?                   @map("endereco_cep")
+  observacoes             String?
+  responsavelId           String?                   @map("responsavel_id") @db.Uuid
+  responsavelNome         String?                   @map("responsavel_nome")
+  status                  StatusCliente             @default(ATIVO)
+  // Campos pessoais — só relevantes/preenchidos para Pessoa Física; nulos
+  // para Pessoa Jurídica. `nomeMae`/`nomePai`/`dataNascimento` entram em
+  // `CLIENT_SENSITIVE_FIELD_RULES` (dado sigiloso, exige
+  // `client:read:sensitive`), mesmo tratamento de CPF/endereço.
+  avatarUrl               String?                   @map("avatar_url")
+  nomeMae                 String?                   @map("nome_mae")
+  nomePai                 String?                   @map("nome_pai")
+  estadoCivil             EstadoCivil?              @map("estado_civil")
+  profissao               String?
+  dataNascimento          DateTime?                 @map("data_nascimento") @db.Date
+  // Valores dos Campos Extras definidos no Configuration Engine
+  // (`CampoExtra`, entidade CLIENTE) — o motor de configuração só define os
+  // campos (metadado); os valores por cliente são responsabilidade do
+  // próprio módulo Clientes, guardados aqui como `{ [campoExtraId]: valor }`.
+  camposExtrasValores     Json                      @default("{}") @map("campos_extras_valores")
+  criadoEm                DateTime                  @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm            DateTime                  @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm              DateTime?                 @map("excluido_em") @db.Timestamptz
+  // Coluna gerada (GENERATED ALWAYS AS ... STORED) criada via migration SQL
+  // manual (prisma/migrations/20260731000002_search_extensions) — declarada
+  // aqui apenas para que `prisma migrate dev` não tente removê-la por
+  // "drift" (schema.prisma é a única fonte que ele compara). `Unsupported`
+  // não é gerenciável pelo Prisma Client; a definição real (expressão de
+  // geração, índice GIN) vive só na migration manual.
+  buscaTsv                Unsupported("tsvector")?  @map("busca_tsv")
+
+  escritorio                  Escritorio                  @relation(fields: [escritorioId], references: [id], onDelete: Restrict)
+  processos                   Processo[]
+  // Adicionados na Sprint 11 (Assistente Jurídico Inteligente) — "Histórico
+  // Inteligente" do Cliente.
+  resumosIa                   ResumoIA[]
+  fontesIa                    FonteIA[]
+  favoritos                   ClienteFavorito[]
+  movimentacoesExtrajudiciais MovimentacaoExtrajudicial[]
+  pastasJuridicasPrincipais   PastaJuridica[]             @relation("PastaJuridicaClientePrincipal")
+  pastasJuridicasContrarias   PastaJuridica[]             @relation("PastaJuridicaParteContraria")
+  vinculosPastasJuridicas     PastaJuridicaCliente[]
+
+  @@index([escritorioId, nome], map: "idx_clientes_escritorio_nome")
+  @@index([escritorioId, cpf], map: "idx_clientes_escritorio_cpf")
+  @@index([escritorioId, cnpj], map: "idx_clientes_escritorio_cnpj")
+  @@index([escritorioId, rg], map: "idx_clientes_escritorio_rg")
+  @@index([escritorioId, categoriaRelacionamento], map: "idx_clientes_escritorio_categoria")
+  @@map("clientes")
+}
+
+// Mesmo padrão de `TarefaFavorito`/`PastaFavorito`/`DocumentoFavorito` —
+// favorito é por membro (nunca vaza entre usuários do mesmo escritório).
+model ClienteFavorito {
+  clienteId String   @map("cliente_id") @db.Uuid
+  membroId  String   @map("membro_id") @db.Uuid
+  criadoEm  DateTime @default(now()) @map("criado_em") @db.Timestamptz
+
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@id([clienteId, membroId])
+  @@map("cliente_favorito")
+}
+
+// ============================================================================
+// LEGAL CASES
+// ============================================================================
+
+enum TipoProcesso {
+  JUDICIAL
+  ADMINISTRATIVO
+  CONSULTIVO
+  EXTRAJUDICIAL
+}
+
+enum InstanciaProcesso {
+  PRIMEIRA
+  SEGUNDA
+  SUPERIOR
+}
+
+enum PoloProcesso {
+  ATIVO
+  PASSIVO
+  TERCEIRO
+}
+
+enum StatusProcesso {
+  ATIVO
+  SUSPENSO
+  ARQUIVADO
+  ENCERRADO
+}
+
+enum PrioridadeProcesso {
+  BAIXA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+enum TipoParticipante {
+  AUTOR
+  REU
+  TERCEIRO_INTERESSADO
+  ASSISTENTE
+  MINISTERIO_PUBLICO
+  TESTEMUNHA
+  PERITO
+  ADVOGADO_EXTERNO
+  /// Advogado que representa o polo Autor — distinto de ADVOGADO_EXTERNO
+  /// (que não carrega polo) para permitir "advogado principal do polo"
+  /// reutilizando o mesmo mecanismo de ParteProcesso.principal + índice
+  /// único parcial já usado por AUTOR/REU.
+  ADVOGADO_AUTOR
+  /// Advogado que representa o polo Réu — ver ADVOGADO_AUTOR.
+  ADVOGADO_REU
+  JUIZ
+  PROMOTOR
+  REPRESENTANTE_LEGAL
+  OUTRO
+}
+
+enum NaturezaPessoa {
+  PESSOA_FISICA
+  PESSOA_JURIDICA
+}
+
+enum NivelAcessoProcesso {
+  LEITURA
+  LEITURA_ESCRITA
+}
+
+enum TipoRelacaoProcesso {
+  PRINCIPAL
+  DEPENDENTE
+  RECURSO
+  CUMPRIMENTO
+  CONEXO
+  APENSO
+  RELACIONADO
+}
+
+enum TipoPrazo {
+  FATAL
+  INTERNO
+  AUDIENCIA
+  REUNIAO
+  TAREFA
+}
+
+enum PrioridadePrazo {
+  BAIXA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+enum StatusPrazo {
+  PENDENTE
+  EM_ANDAMENTO
+  CONCLUIDO
+  CANCELADO
+  ATRASADO
+}
+
+enum OrigemPrazo {
+  MANUAL
+  IMPORTADO
+  IA
+  TRIBUNAL
+}
+
+model Processo {
+  id                      String                   @id @default(uuid()) @db.Uuid
+  escritorioId            String                   @map("escritorio_id") @db.Uuid
+  clienteId               String                   @map("cliente_id") @db.Uuid
+  numeroCnj               String?                  @map("numero_cnj")
+  numeroInterno           String?                  @map("numero_interno")
+  instituicao             String?
+  numeroBeneficio         String?                  @map("numero_beneficio")
+  /// RO - Número do Benefício (campo específico do Judicial previdenciário
+  /// — sem equivalente existente no domínio; ver migration
+  /// 20260813010000_judicial_case_fields).
+  roNumeroBeneficio       String?                  @map("ro_numero_beneficio")
+  titulo                  String
+  descricao               String?
+  area                    String
+  tipoAcao                String?                  @map("tipo_acao")
+  tipo                    TipoProcesso             @default(JUDICIAL)
+  tribunal                String?
+  comarca                 String?
+  vara                    String?
+  uf                      String?                  @db.Char(2)
+  instancia               InstanciaProcesso?
+  classeProcessual        String?                  @map("classe_processual")
+  assunto                 String?
+  poloCliente             PoloProcesso             @map("polo_cliente")
+  status                  StatusProcesso           @default(ATIVO)
+  prioridade              PrioridadeProcesso       @default(MEDIA)
+  segredoJustica          Boolean                  @default(false) @map("segredo_justica")
+  valorCausaCentavos      BigInt?                  @map("valor_causa_centavos")
+  moedaValorCausa         String                   @default("BRL") @map("moeda_valor_causa") @db.Char(3)
+  dataDistribuicao        DateTime?                @map("data_distribuicao") @db.Date
+  dataEncerramento        DateTime?                @map("data_encerramento") @db.Date
+  responsavelPrincipalId  String                   @map("responsavel_principal_id") @db.Uuid
+  proximaDataRelevante    DateTime?                @map("proxima_data_relevante") @db.Timestamptz
+  observacoes             String?
+  camposCustomizados      Json                     @default("{}") @map("campos_customizados")
+  resumoIaVigenteId       String?                  @map("resumo_ia_vigente_id") @db.Uuid
+  ultimaAtualizacaoEm     DateTime                 @default(now()) @map("ultima_atualizacao_em") @db.Timestamptz
+  versao                  Int                      @default(1)
+  criadoEm                DateTime                 @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm            DateTime                 @updatedAt @map("atualizado_em") @db.Timestamptz
+  arquivadoEm             DateTime?                @map("arquivado_em") @db.Timestamptz
+  excluidoEm              DateTime?                @map("excluido_em") @db.Timestamptz
+  // Colunas geradas — ver nota em Cliente.buscaTsv; definidas de fato em
+  // prisma/migrations/20260731000002_search_extensions.
+  buscaTsv                Unsupported("tsvector")? @map("busca_tsv")
+  // GENERATED ALWAYS no banco (regexp_replace de numero_cnj) — declarado
+  // como String normal porque o Prisma lida bem com o tipo `text`, mas a
+  // aplicação nunca deve escrever neste campo (o Postgres rejeitaria a
+  // escrita com erro, nunca corrompe dado silenciosamente).
+  numeroCnjSomenteDigitos String?                  @map("numero_cnj_somente_digitos")
+
+  escritorio Escritorio @relation(fields: [escritorioId], references: [id], onDelete: Restrict)
+  cliente    Cliente    @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+
+  partes                      ParteProcesso[]
+  equipe                      ProcessoMembro[]
+  prazos                      Prazo[]
+  eventosTimeline             EventoTimeline[]
+  documentos                  Documento[]
+  pastas                      Pasta[]
+  comentarios                 Comentario[]
+  resumosIa                   ResumoIA[]
+  // Adicionado na Sprint 11 — citar o processo como fonte de um Histórico de Cliente.
+  fontesIa                    FonteIA[]
+  tags                        ProcessoTag[]
+  relacionadosOrigem          ProcessoRelacionado[]         @relation("ProcessoOrigem")
+  relacionadosDestino         ProcessoRelacionado[]         @relation("ProcessoRelacionadoRel")
+  configuracoesCaptura        ConfiguracaoCaptura[]
+  movimentosCapturados        MovimentoJudicialCapturado[]
+  publicacoesCapturadas       PublicacaoJudicialCapturada[]
+  movimentacoesExtrajudiciais MovimentacaoExtrajudicial[]
+  pastasJuridicas             PastaJuridicaProcesso[]
+  pedidos                     Pedido[]
+
+  @@unique([escritorioId, numeroCnj], map: "uq_processos_escritorio_cnj")
+  @@index([escritorioId, status], map: "idx_processos_escritorio_status")
+  @@index([escritorioId, responsavelPrincipalId], map: "idx_processos_escritorio_responsavel")
+  @@index([escritorioId, ultimaAtualizacaoEm(sort: Desc)], map: "idx_processos_escritorio_atualizacao")
+  @@index([clienteId], map: "idx_processos_cliente")
+  @@map("processos")
+}
+
+// ============================================================================
+// JUDICIAL CAPTURE
+// ============================================================================
+
+/// Dossiê jurídico operacional. Não confundir com `Pasta`, que é Folder do
+/// Document Engine e existe apenas para organizar arquivos.
+model PastaJuridica {
+  id                        String    @id @default(uuid()) @db.Uuid
+  escritorioId              String    @map("escritorio_id") @db.Uuid
+  nome                      String
+  prefixo                   String?
+  sequencial                Int?
+  numeroInterno             String?   @map("numero_interno")
+  assunto                   String?
+  categoria                 String?
+  etapa                     String?
+  situacao                  String    @default("EM_ANDAMENTO")
+  confidencial              Boolean   @default(false)
+  clientePrincipalId        String    @map("cliente_principal_id") @db.Uuid
+  parteContrariaPrincipalId String?   @map("parte_contraria_principal_id") @db.Uuid
+  encarregadoId             String    @map("encarregado_id") @db.Uuid
+  observacoes               String?
+  camposExtrasValores       Json      @default("{}") @map("campos_extras_valores")
+  dataConclusao             DateTime? @map("data_conclusao") @db.Date
+  criadoEm                  DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm              DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz
+  arquivadoEm               DateTime? @map("arquivado_em") @db.Timestamptz
+  excluidoEm                DateTime? @map("excluido_em") @db.Timestamptz
+
+  escritorio                  Escritorio                  @relation(fields: [escritorioId], references: [id], onDelete: Restrict)
+  clientePrincipal            Cliente                     @relation("PastaJuridicaClientePrincipal", fields: [clientePrincipalId], references: [id], onDelete: Restrict)
+  parteContrariaPrincipal     Cliente?                    @relation("PastaJuridicaParteContraria", fields: [parteContrariaPrincipalId], references: [id], onDelete: SetNull)
+  processos                   PastaJuridicaProcesso[]
+  vinculosClientes            PastaJuridicaCliente[]
+  configuracoesCaptura        ConfiguracaoCaptura[]
+  movimentacoesExtrajudiciais MovimentacaoExtrajudicial[]
+  eventosTimeline             EventoTimeline[]
+  pedidos                     Pedido[]
+
+  @@unique([escritorioId, numeroInterno], map: "uq_pastas_juridicas_escritorio_numero")
+  @@unique([escritorioId, prefixo, sequencial], map: "uq_pastas_juridicas_escritorio_prefixo_sequencial")
+  @@index([escritorioId, situacao], map: "idx_pastas_juridicas_escritorio_situacao")
+  @@index([escritorioId, clientePrincipalId], map: "idx_pastas_juridicas_cliente")
+  @@index([escritorioId, encarregadoId], map: "idx_pastas_juridicas_encarregado")
+  @@map("pastas_juridicas")
+}
+
+enum TipoVinculoPastaJuridica {
+  CLIENTE
+  PARTE_CONTRARIA
+  INTERESSADO
+}
+
+model PastaJuridicaCliente {
+  pastaJuridicaId String                   @map("pasta_juridica_id") @db.Uuid
+  clienteId       String                   @map("cliente_id") @db.Uuid
+  tipo            TipoVinculoPastaJuridica
+  criadoEm        DateTime                 @default(now()) @map("criado_em") @db.Timestamptz
+
+  pastaJuridica PastaJuridica @relation(fields: [pastaJuridicaId], references: [id], onDelete: Cascade)
+  cliente       Cliente       @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+
+  @@id([pastaJuridicaId, clienteId, tipo])
+  @@index([clienteId, tipo], map: "idx_pasta_juridica_clientes_cliente_tipo")
+  @@map("pasta_juridica_clientes")
+}
+
+model PrefixoPastaJuridica {
+  id            String   @id @default(uuid()) @db.Uuid
+  escritorioId  String   @map("escritorio_id") @db.Uuid
+  prefixo       String
+  nome          String
+  proximoNumero Int      @default(1) @map("proximo_numero")
+  ativo         Boolean  @default(true)
+  criadoEm      DateTime @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm  DateTime @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  escritorio Escritorio @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+
+  @@unique([escritorioId, prefixo], map: "uq_prefixos_pasta_juridica_escritorio_prefixo")
+  @@index([escritorioId, ativo], map: "idx_prefixos_pasta_juridica_escritorio_ativo")
+  @@map("prefixos_pasta_juridica")
+}
+
+enum TipoOpcaoPastaJuridica {
+  CATEGORIA
+  SITUACAO
+  ETAPA
+}
+
+model OpcaoPastaJuridica {
+  id           String                 @id @default(uuid()) @db.Uuid
+  escritorioId String                 @map("escritorio_id") @db.Uuid
+  tipo         TipoOpcaoPastaJuridica
+  valor        String
+  label        String
+  ordem        Int                    @default(0)
+  ativo        Boolean                @default(true)
+  criadoEm     DateTime               @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm DateTime               @updatedAt @map("atualizado_em") @db.Timestamptz
+  escritorio   Escritorio             @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+
+  @@unique([escritorioId, tipo, valor], map: "uq_opcoes_pasta_juridica_escritorio_tipo_valor")
+  @@index([escritorioId, tipo, ativo], map: "idx_opcoes_pasta_juridica_escritorio_tipo_ativo")
+  @@map("opcoes_pasta_juridica")
+}
+
+model PastaJuridicaProcesso {
+  pastaJuridicaId String   @map("pasta_juridica_id") @db.Uuid
+  processoId      String   @map("processo_id") @db.Uuid
+  criadoEm        DateTime @default(now()) @map("criado_em") @db.Timestamptz
+
+  pastaJuridica PastaJuridica @relation(fields: [pastaJuridicaId], references: [id], onDelete: Cascade)
+  processo      Processo      @relation(fields: [processoId], references: [id], onDelete: Restrict)
+
+  @@id([pastaJuridicaId, processoId])
+  @@index([processoId], map: "idx_pasta_juridica_processo_processo")
+  @@map("pasta_juridica_processos")
+}
+
+/// Pretensão jurídica autônoma, sempre contextualizada por uma Pasta Jurídica.
+/// Valores monetários seguem o padrão seguro do projeto: centavos inteiros.
+model Pedido {
+  id                    String    @id @default(uuid()) @db.Uuid
+  escritorioId          String    @map("escritorio_id") @db.Uuid
+  pastaJuridicaId       String    @map("pasta_juridica_id") @db.Uuid
+  processoId            String?   @map("processo_id") @db.Uuid
+  descricao             String
+  categoria             String
+  situacao              String    @default("EM_ANDAMENTO")
+  dataFinalizacao       DateTime? @map("data_finalizacao") @db.Date
+  estimativaExito       Decimal?  @map("estimativa_exito") @db.Decimal(5, 2)
+  valorPedidoCentavos   BigInt?   @map("valor_pedido_centavos")
+  valorProvavelCentavos BigInt?   @map("valor_provavel_centavos")
+  valorPossivelCentavos BigInt?   @map("valor_possivel_centavos")
+  valorRemotoCentavos   BigInt?   @map("valor_remoto_centavos")
+  valorFinalCentavos    BigInt?   @map("valor_final_centavos")
+  anotacoes             String?   @db.VarChar(1000)
+  criadoEm              DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm          DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm            DateTime? @map("excluido_em") @db.Timestamptz
+
+  escritorio    Escritorio    @relation(fields: [escritorioId], references: [id], onDelete: Restrict)
+  pastaJuridica PastaJuridica @relation(fields: [pastaJuridicaId], references: [id], onDelete: Restrict)
+  processo      Processo?     @relation(fields: [processoId], references: [id], onDelete: SetNull)
+
+  @@index([escritorioId, pastaJuridicaId], map: "idx_pedidos_escritorio_pasta")
+  @@index([escritorioId, situacao], map: "idx_pedidos_escritorio_situacao")
+  @@index([escritorioId, criadoEm(sort: Desc)], map: "idx_pedidos_escritorio_criado")
+  @@index([escritorioId, processoId], map: "idx_pedidos_escritorio_processo")
+  @@map("pedidos")
+}
+
+enum StatusConfiguracaoCaptura {
+  ATIVA
+  PAUSADA
+  SINCRONIZANDO
+  ERRO
+}
+
+enum ResultadoSincronizacaoCaptura {
+  SUCESSO
+  SEM_NOVIDADES
+  NAO_ENCONTRADO
+  ERRO
+}
+
+enum ProvedorCapturaJudicial {
+  DATAJUD
+  DJEN
+}
+
+model ConfiguracaoCaptura {
+  id                      String                         @id @default(uuid()) @db.Uuid
+  escritorioId            String                         @map("escritorio_id") @db.Uuid
+  processoId              String?                        @map("processo_id") @db.Uuid
+  pastaJuridicaId         String?                        @map("pasta_juridica_id") @db.Uuid
+  numeroCnj               String                         @map("numero_cnj")
+  numeroCnjSomenteDigitos String                         @map("numero_cnj_somente_digitos")
+  capturaAtiva            Boolean                        @default(true) @map("captura_ativa")
+  status                  StatusConfiguracaoCaptura      @default(ATIVA)
+  ultimoResultado         ResultadoSincronizacaoCaptura? @map("ultimo_resultado")
+  ultimaSincronizacaoEm   DateTime?                      @map("ultima_sincronizacao_em") @db.Timestamptz
+  proximaSincronizacaoEm  DateTime?                      @map("proxima_sincronizacao_em") @db.Timestamptz
+  novidadesUltimaCaptura  Int                            @default(0) @map("novidades_ultima_captura")
+  ultimoErroPublico       String?                        @map("ultimo_erro_publico")
+  criadoEm                DateTime                       @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm            DateTime                       @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  escritorio    Escritorio                      @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  processo      Processo?                       @relation(fields: [processoId], references: [id], onDelete: SetNull)
+  pastaJuridica PastaJuridica?                  @relation(fields: [pastaJuridicaId], references: [id], onDelete: SetNull)
+  historicos    HistoricoSincronizacaoCaptura[]
+
+  @@unique([escritorioId, numeroCnjSomenteDigitos], map: "uq_config_captura_escritorio_cnj")
+  @@index([escritorioId, status], map: "idx_config_captura_escritorio_status")
+  @@index([escritorioId, ultimaSincronizacaoEm(sort: Desc)], map: "idx_config_captura_ultima_sync")
+  @@map("configuracoes_captura")
+}
+
+model HistoricoSincronizacaoCaptura {
+  id              String                        @id @default(uuid()) @db.Uuid
+  escritorioId    String                        @map("escritorio_id") @db.Uuid
+  configuracaoId  String                        @map("configuracao_id") @db.Uuid
+  provider        ProvedorCapturaJudicial
+  resultado       ResultadoSincronizacaoCaptura
+  novidades       Int                           @default(0)
+  erroPublico     String?                       @map("erro_publico")
+  duracaoMs       Int?                          @map("duracao_ms")
+  sincronizadoPor String?                       @map("sincronizado_por") @db.Uuid
+  criadoEm        DateTime                      @default(now()) @map("criado_em") @db.Timestamptz
+
+  escritorio   Escritorio          @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  configuracao ConfiguracaoCaptura @relation(fields: [configuracaoId], references: [id], onDelete: Cascade)
+
+  @@index([escritorioId, configuracaoId, criadoEm(sort: Desc)], map: "idx_historico_captura_config")
+  @@map("historicos_sincronizacao_captura")
+}
+
+model MovimentoJudicialCapturado {
+  id            String                  @id @default(uuid()) @db.Uuid
+  escritorioId  String                  @map("escritorio_id") @db.Uuid
+  processoId    String?                 @map("processo_id") @db.Uuid
+  provider      ProvedorCapturaJudicial
+  externalId    String                  @map("external_id")
+  numeroCnj     String                  @map("numero_cnj")
+  dataMovimento DateTime                @map("data_movimento") @db.Timestamptz
+  tipo          String
+  descricao     String
+  tribunal      String?
+  payloadBruto  Json?                   @map("payload_bruto")
+  capturadoEm   DateTime                @default(now()) @map("capturado_em") @db.Timestamptz
+
+  escritorio  Escritorio                    @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  processo    Processo?                     @relation(fields: [processoId], references: [id], onDelete: SetNull)
+  publicacoes PublicacaoJudicialCapturada[]
+  estados     MovimentoEstadoUsuario[]
+
+  @@unique([escritorioId, provider, externalId], map: "uq_movimento_capturado_external")
+  @@index([escritorioId, numeroCnj, dataMovimento(sort: Desc)], map: "idx_movimento_capturado_cnj")
+  @@map("movimentos_judiciais_capturados")
+}
+
+model MovimentoEstadoUsuario {
+  movimentoId  String    @map("movimento_id") @db.Uuid
+  membroId     String    @map("membro_id") @db.Uuid
+  favoritaEm   DateTime? @map("favorita_em") @db.Timestamptz
+  lidaEm       DateTime? @map("lida_em") @db.Timestamptz
+  criadoEm     DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  movimento MovimentoJudicialCapturado @relation(fields: [movimentoId], references: [id], onDelete: Cascade)
+  membro    Membro                     @relation(fields: [membroId], references: [id], onDelete: Cascade)
+
+  @@id([movimentoId, membroId])
+  @@index([membroId, favoritaEm], map: "idx_movimento_estado_favorita")
+  @@index([membroId, lidaEm], map: "idx_movimento_estado_leitura")
+  @@map("movimento_estado_usuario")
+}
+
+model MovimentacaoExtrajudicial {
+  id                  String    @id @default(uuid()) @db.Uuid
+  escritorioId        String    @map("escritorio_id") @db.Uuid
+  clienteId           String    @map("cliente_id") @db.Uuid
+  processoId          String?   @map("processo_id") @db.Uuid
+  pastaId             String?   @map("pasta_id") @db.Uuid
+  pastaJuridicaId     String?   @map("pasta_juridica_id") @db.Uuid
+  responsavelId       String    @map("responsavel_id") @db.Uuid
+  dataMovimentacao    DateTime  @map("data_movimentacao") @db.Timestamptz
+  tipo                String
+  origem              String
+  status              String
+  descricao           String    @db.Text
+  observacoes         String?   @db.Text
+  camposExtrasValores Json      @default("{}") @map("campos_extras_valores")
+  criadoPorId         String    @map("criado_por_id") @db.Uuid
+  criadoEm            DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm        DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm          DateTime? @map("excluido_em") @db.Timestamptz
+
+  escritorio    Escritorio                               @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  cliente       Cliente                                  @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  processo      Processo?                                @relation(fields: [processoId], references: [id], onDelete: SetNull)
+  pasta         Pasta?                                   @relation(fields: [pastaId], references: [id], onDelete: SetNull)
+  pastaJuridica PastaJuridica?                           @relation(fields: [pastaJuridicaId], references: [id], onDelete: SetNull)
+  responsavel   Membro                                   @relation("MovimentacaoExtrajudicialResponsavel", fields: [responsavelId], references: [id], onDelete: Restrict)
+  estados       MovimentacaoExtrajudicialEstadoUsuario[]
+
+  @@index([escritorioId, dataMovimentacao(sort: Desc)], map: "idx_mov_ext_data")
+  @@index([escritorioId, clienteId], map: "idx_mov_ext_cliente")
+  @@index([escritorioId, processoId], map: "idx_mov_ext_processo")
+  @@index([escritorioId, pastaJuridicaId, dataMovimentacao(sort: Desc)], map: "idx_mov_ext_pasta_juridica")
+  @@index([escritorioId, excluidoEm], map: "idx_mov_ext_ativos")
+  @@map("movimentacoes_extrajudiciais")
+}
+
+model MovimentacaoExtrajudicialEstadoUsuario {
+  movimentacaoId String    @map("movimentacao_id") @db.Uuid
+  membroId       String    @map("membro_id") @db.Uuid
+  favoritaEm     DateTime? @map("favorita_em") @db.Timestamptz
+  lidaEm         DateTime? @map("lida_em") @db.Timestamptz
+  criadoEm       DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm   DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  movimentacao MovimentacaoExtrajudicial @relation(fields: [movimentacaoId], references: [id], onDelete: Cascade)
+  membro       Membro                    @relation(fields: [membroId], references: [id], onDelete: Cascade)
+
+  @@id([movimentacaoId, membroId])
+  @@index([membroId, favoritaEm], map: "idx_mov_ext_estado_favorita")
+  @@index([membroId, lidaEm], map: "idx_mov_ext_estado_leitura")
+  @@map("movimentacao_extrajudicial_estado_usuario")
+}
+
+model PublicacaoJudicialCapturada {
+  id                     String                  @id @default(uuid()) @db.Uuid
+  escritorioId           String                  @map("escritorio_id") @db.Uuid
+  processoId             String?                 @map("processo_id") @db.Uuid
+  movimentoRelacionadoId String?                 @map("movimento_relacionado_id") @db.Uuid
+  provider               ProvedorCapturaJudicial
+  externalId             String                  @map("external_id")
+  numeroCnj              String                  @map("numero_cnj")
+  dataPublicacao         DateTime?               @map("data_publicacao") @db.Timestamptz
+  dataDisponibilizacao   DateTime?               @map("data_disponibilizacao") @db.Timestamptz
+  tipoComunicacao        String?                 @map("tipo_comunicacao")
+  conteudo               String?
+  tribunal               String?
+  payloadBruto           Json?                   @map("payload_bruto")
+  capturadoEm            DateTime                @default(now()) @map("capturado_em") @db.Timestamptz
+
+  escritorio           Escritorio                  @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  processo             Processo?                   @relation(fields: [processoId], references: [id], onDelete: SetNull)
+  movimentoRelacionado MovimentoJudicialCapturado? @relation(fields: [movimentoRelacionadoId], references: [id], onDelete: SetNull)
+  estados              PublicacaoEstadoUsuario[]
+
+  @@unique([escritorioId, provider, externalId], map: "uq_publicacao_capturada_external")
+  @@index([escritorioId, numeroCnj, dataPublicacao(sort: Desc)], map: "idx_publicacao_capturada_cnj")
+  @@index([escritorioId, movimentoRelacionadoId], map: "idx_publicacao_movimento")
+  @@map("publicacoes_judiciais_capturadas")
+}
+
+model PublicacaoEstadoUsuario {
+  publicacaoId String    @map("publicacao_id") @db.Uuid
+  membroId     String    @map("membro_id") @db.Uuid
+  lidaEm       DateTime? @map("lida_em") @db.Timestamptz
+  favoritaEm   DateTime? @map("favorita_em") @db.Timestamptz
+  criadoEm     DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  publicacao PublicacaoJudicialCapturada @relation(fields: [publicacaoId], references: [id], onDelete: Cascade)
+  membro     Membro                      @relation(fields: [membroId], references: [id], onDelete: Cascade)
+
+  @@id([publicacaoId, membroId])
+  @@index([membroId, lidaEm], map: "idx_publicacao_estado_lida")
+  @@index([membroId, favoritaEm], map: "idx_publicacao_estado_favorita")
+  @@map("publicacao_estado_usuario")
+}
+
+model ParteProcesso {
+  id             String           @id @default(uuid()) @db.Uuid
+  escritorioId   String           @map("escritorio_id") @db.Uuid
+  processoId     String           @map("processo_id") @db.Uuid
+  tipo           TipoParticipante
+  natureza       NaturezaPessoa
+  nome           String
+  documento      String?
+  clienteId      String?          @map("cliente_id") @db.Uuid
+  ehNossoCliente Boolean          @default(false) @map("eh_nosso_cliente")
+  principal      Boolean          @default(false)
+  oabNumero      String?          @map("oab_numero")
+  oabUf          String?          @map("oab_uf") @db.Char(2)
+  observacoes    String?
+  criadoEm       DateTime         @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm   DateTime         @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm     DateTime?        @map("excluido_em") @db.Timestamptz
+
+  processo Processo @relation(fields: [processoId], references: [id], onDelete: Cascade)
+
+  @@index([processoId], map: "idx_partes_processo")
+  @@index([processoId, tipo, principal], map: "idx_partes_processo_principal")
+  @@map("partes_processo")
+}
+
+model ProcessoMembro {
+  id                   String              @id @default(uuid()) @db.Uuid
+  processoId           String              @map("processo_id") @db.Uuid
+  membroId             String              @map("membro_id") @db.Uuid
+  funcaoNoProcesso     String?             @map("funcao_no_processo")
+  responsavelPrincipal Boolean             @default(false) @map("responsavel_principal")
+  acessoPermitido      NivelAcessoProcesso @default(LEITURA_ESCRITA) @map("acesso_permitido")
+  entrouEm             DateTime            @default(now()) @map("entrou_em") @db.Timestamptz
+  saiuEm               DateTime?           @map("saiu_em") @db.Timestamptz
+
+  processo Processo @relation(fields: [processoId], references: [id], onDelete: Cascade)
+
+  @@index([processoId], map: "idx_processo_membro_processo")
+  @@index([membroId], map: "idx_processo_membro_membro")
+  @@map("processo_membro")
+}
+
+model ProcessoRelacionado {
+  id                    String              @id @default(uuid()) @db.Uuid
+  escritorioId          String              @map("escritorio_id") @db.Uuid
+  processoOrigemId      String              @map("processo_origem_id") @db.Uuid
+  processoRelacionadoId String              @map("processo_relacionado_id") @db.Uuid
+  tipoRelacao           TipoRelacaoProcesso @map("tipo_relacao")
+  observacoes           String?
+  criadoEm              DateTime            @default(now()) @map("criado_em") @db.Timestamptz
+
+  processoOrigem      Processo @relation("ProcessoOrigem", fields: [processoOrigemId], references: [id], onDelete: Cascade)
+  processoRelacionado Processo @relation("ProcessoRelacionadoRel", fields: [processoRelacionadoId], references: [id], onDelete: Cascade)
+
+  @@unique([processoOrigemId, processoRelacionadoId, tipoRelacao], map: "uq_processo_relacionado")
+  @@map("processo_relacionado")
+}
+
+model Prazo {
+  id                 String          @id @default(uuid()) @db.Uuid
+  escritorioId       String          @map("escritorio_id") @db.Uuid
+  processoId         String          @map("processo_id") @db.Uuid
+  titulo             String
+  descricao          String?
+  tipo               TipoPrazo
+  dataVencimento     DateTime        @map("data_vencimento") @db.Date
+  horaVencimento     DateTime?       @map("hora_vencimento") @db.Time
+  dataConclusao      DateTime?       @map("data_conclusao") @db.Timestamptz
+  responsavelId      String          @map("responsavel_id") @db.Uuid
+  prioridade         PrioridadePrazo @default(MEDIA)
+  status             StatusPrazo     @default(PENDENTE)
+  lembretes          Int[]           @default([7, 3, 1, 0])
+  origem             OrigemPrazo     @default(MANUAL)
+  motivoCancelamento String?         @map("motivo_cancelamento")
+  criadoEm           DateTime        @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm       DateTime        @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  processo Processo @relation(fields: [processoId], references: [id], onDelete: Cascade)
+
+  @@index([escritorioId, dataVencimento], map: "idx_prazos_escritorio_vencimento")
+  @@index([responsavelId, dataVencimento], map: "idx_prazos_responsavel")
+  @@map("prazos")
+}
+
+// ============================================================================
+// DOCUMENTS
+// ============================================================================
+
+enum StorageProvider {
+  S3
+  LOCAL
+}
+
+enum StatusUpload {
+  PENDENTE
+  CONCLUIDO
+  FALHA
+}
+
+enum StatusProcessamentoDocumento {
+  PENDENTE
+  PROCESSANDO
+  PRONTO
+  FALHA
+}
+
+enum StatusAntivirus {
+  PENDENTE
+  LIMPO
+  INFECTADO
+  ERRO
+}
+
+enum TipoDocumento {
+  PETICAO
+  CONTRATO
+  PROCURACAO
+  SENTENCA
+  DECISAO
+  COMPROVANTE
+  PARECER
+  OUTRO
+}
+
+enum NivelConfidencialidade {
+  PADRAO
+  CONFIDENCIAL
+}
+
+enum Visibilidade {
+  INTERNA
+  COMPARTILHADA
+  PUBLICA
+}
+
+model Pasta {
+  id           String    @id @default(uuid()) @db.Uuid
+  escritorioId String    @map("escritorio_id") @db.Uuid
+  processoId   String?   @map("processo_id") @db.Uuid
+  pastaPaiId   String?   @map("pasta_pai_id") @db.Uuid
+  nome         String
+  ordem        Int       @default(0)
+  criadaPorId  String    @map("criada_por_id") @db.Uuid
+  criadoEm     DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm   DateTime? @map("excluido_em") @db.Timestamptz
+
+  processo                    Processo?                   @relation(fields: [processoId], references: [id], onDelete: Cascade)
+  pastaPai                    Pasta?                      @relation("PastaHierarquia", fields: [pastaPaiId], references: [id], onDelete: Restrict)
+  subpastas                   Pasta[]                     @relation("PastaHierarquia")
+  documentos                  Documento[]
+  favoritos                   PastaFavorito[]
+  movimentacoesExtrajudiciais MovimentacaoExtrajudicial[]
+
+  @@index([processoId], map: "idx_pastas_processo")
+  @@index([pastaPaiId], map: "idx_pastas_pai")
+  @@map("pastas")
+}
+
+// Adicionado na Sprint 09 (Documentos e Pastas) — "favoritar" é por membro,
+// não uma coluna global no agregado (dois membros do mesmo escritório podem
+// favoritar pastas diferentes), mesmo racional de `DocumentoFavorito` abaixo.
+model PastaFavorito {
+  pastaId  String   @map("pasta_id") @db.Uuid
+  membroId String   @map("membro_id") @db.Uuid
+  criadoEm DateTime @default(now()) @map("criado_em") @db.Timestamptz
+
+  pasta Pasta @relation(fields: [pastaId], references: [id], onDelete: Cascade)
+
+  @@id([pastaId, membroId])
+  @@map("pasta_favorito")
+}
+
+model Documento {
+  id                  String                       @id @default(uuid()) @db.Uuid
+  escritorioId        String                       @map("escritorio_id") @db.Uuid
+  processoId          String?                      @map("processo_id") @db.Uuid
+  clienteId           String?                      @map("cliente_id") @db.Uuid
+  pastaId             String?                      @map("pasta_id") @db.Uuid
+  nome                String
+  nomeOriginal        String                       @map("nome_original")
+  extensao            String
+  mimeType            String                       @map("mime_type")
+  tamanhoBytes        BigInt                       @map("tamanho_bytes")
+  storageProvider     StorageProvider              @default(S3) @map("storage_provider")
+  storageKey          String                       @map("storage_key")
+  // Nullable desde a Sprint 09 — achado real: `POST /v1/documents/presign`
+  // (docs/api/10-documents.md §10.3) cria a linha ANTES do hash existir (o
+  // cliente só calcula o hash depois de ler o binário, no passo de
+  // `confirm`); `hashSha256 NOT NULL` original era impossível de satisfazer
+  // honestamente nesta janela. Passa a ser preenchido apenas em
+  // `ConfirmDocumentUploadUseCase`/`ConfirmDocumentVersionUseCase`.
+  hashSha256          String?                      @map("hash_sha256")
+  statusUpload        StatusUpload                 @default(PENDENTE) @map("status_upload")
+  statusProcessamento StatusProcessamentoDocumento @default(PENDENTE) @map("status_processamento")
+  statusAntivirus     StatusAntivirus              @default(PENDENTE) @map("status_antivirus")
+  categoria           String?
+  tipo                TipoDocumento                @default(OUTRO)
+  confidencialidade   NivelConfidencialidade       @default(PADRAO)
+  visibilidade        Visibilidade                 @default(INTERNA)
+  descricao           String?
+  versaoVigenteId     String?                      @map("versao_vigente_id") @db.Uuid
+  autorUploadId       String                       @map("autor_upload_id") @db.Uuid
+  dataDocumento       DateTime?                    @map("data_documento") @db.Date
+  versao              Int                          @default(1)
+  criadoEm            DateTime                     @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm        DateTime                     @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm          DateTime?                    @map("excluido_em") @db.Timestamptz
+  // Ver nota em Cliente.buscaTsv.
+  buscaTsv            Unsupported("tsvector")?     @map("busca_tsv")
+
+  processo Processo? @relation(fields: [processoId], references: [id], onDelete: SetNull)
+  pasta    Pasta?    @relation(fields: [pastaId], references: [id], onDelete: SetNull)
+
+  versoes     VersaoDocumento[]
+  comentarios Comentario[]
+  tags        DocumentoTag[]
+  fontesIa    FonteIA[]
+  // Adicionado na Sprint 11 — "Resumir Documento".
+  resumosIa   ResumoIA[]
+  favoritos   DocumentoFavorito[]
+  vinculos    DocumentoVinculo[]
+
+  @@index([escritorioId, processoId], map: "idx_documentos_escritorio_processo")
+  @@index([pastaId], map: "idx_documentos_pasta")
+  @@index([escritorioId, hashSha256], map: "idx_documentos_hash")
+  @@map("documentos")
+}
+
+enum TipoVinculoDocumento {
+  PASTA_JURIDICA
+}
+
+/// Vínculo contextual genérico do Document Engine. Não representa a Pasta
+/// documental (`Pasta`) e não duplica o arquivo.
+model DocumentoVinculo {
+  id           String               @id @default(uuid()) @db.Uuid
+  escritorioId String               @map("escritorio_id") @db.Uuid
+  documentoId  String               @map("documento_id") @db.Uuid
+  tipoRecurso  TipoVinculoDocumento @map("tipo_recurso")
+  recursoId    String               @map("recurso_id") @db.Uuid
+  criadoPorId  String               @map("criado_por_id") @db.Uuid
+  criadoEm     DateTime             @default(now()) @map("criado_em") @db.Timestamptz
+
+  documento Documento @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+
+  @@unique([documentoId, tipoRecurso, recursoId], map: "uq_documento_vinculo_recurso")
+  @@index([escritorioId, tipoRecurso, recursoId, criadoEm], map: "idx_documento_vinculo_contexto")
+  @@map("documento_vinculo")
+}
+
+// Adicionado na Sprint 09 (Documentos e Pastas) — favorito é por membro
+// (Google Drive/Notion: cada usuário tem sua própria lista), não uma coluna
+// booleana única no Documento (que seria global ao escritório inteiro).
+model DocumentoFavorito {
+  documentoId String   @map("documento_id") @db.Uuid
+  membroId    String   @map("membro_id") @db.Uuid
+  criadoEm    DateTime @default(now()) @map("criado_em") @db.Timestamptz
+
+  documento Documento @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+
+  @@id([documentoId, membroId])
+  @@map("documento_favorito")
+}
+
+model VersaoDocumento {
+  id               String   @id @default(uuid()) @db.Uuid
+  documentoId      String   @map("documento_id") @db.Uuid
+  numero           Int
+  storageKey       String   @map("storage_key")
+  hashSha256       String   @map("hash_sha256")
+  tamanhoBytes     BigInt   @map("tamanho_bytes")
+  autorId          String   @map("autor_id") @db.Uuid
+  comentarioVersao String?  @map("comentario_versao")
+  criadoEm         DateTime @default(now()) @map("criado_em") @db.Timestamptz
+
+  documento Documento @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+
+  @@unique([documentoId, numero], map: "uq_versoes_documento_numero")
+  @@map("versoes_documento")
+}
+
+// ============================================================================
+// TIMELINE
+// ============================================================================
+
+enum TipoEventoTimeline {
+  MOVIMENTACAO
+  PETICAO
+  AUDIENCIA
+  DECISAO
+  SENTENCA
+  DOCUMENTO
+  COMENTARIO
+  ALTERACAO_STATUS
+  PRAZO
+  ANOTACAO
+  PERSONALIZADO
+  // Adicionados na Sprint 08 (Deadlines + Timeline) — reafirma
+  // docs/backend-implementation/19-decisions.md: extensão aditiva do enum
+  // (migration manual `20260801000000_timeline_event_types`), nenhum valor
+  // existente removido/renomeado. Cobrem os "eventos automáticos" pedidos
+  // que não cabiam nos valores originais sem perder granularidade.
+  CRIACAO_PROCESSO
+  ATUALIZACAO_PROCESSO
+  ALTERACAO_RESPONSAVEL
+  ALTERACAO_PRIORIDADE
+  CLIENTE_ATUALIZADO
+  EQUIPE_ALTERADA
+  SEGREDO_JUSTICA_ALTERADO
+  ARQUIVAMENTO
+  RESTAURACAO
+  IA_EXECUTADA
+  IMPORTACAO
+  EXPORTACAO
+  // Adicionados no Prompt 14 (Task Engine) — mesma técnica aditiva da
+  // Sprint 08 (`ALTER TYPE ... ADD VALUE`). `COMENTARIO`/`ALTERACAO_STATUS`/
+  // `ALTERACAO_RESPONSAVEL`/`ALTERACAO_PRIORIDADE`/`ARQUIVAMENTO`/
+  // `RESTAURACAO` já eram genéricos o suficiente para reaproveitar sem
+  // valor novo (Tarefa também os usa).
+  CRIACAO_TAREFA
+  CONCLUSAO_TAREFA
+  CANCELAMENTO_TAREFA
+  // Adicionados no módulo Colaboradores — mesma técnica aditiva das
+  // extensões anteriores (`ALTER TYPE ... ADD VALUE`).
+  COLABORADOR_CADASTRADO
+  COLABORADOR_ATUALIZADO
+  CARGO_ALTERADO
+  GRUPO_ALTERADO
+  ACESSO_CONCEDIDO
+  ACESSO_REMOVIDO
+  COLABORADOR_BLOQUEADO
+  COLABORADOR_DESBLOQUEADO
+  COLABORADOR_SUSPENSO
+  COLABORADOR_REATIVADO
+  CONVITE_ENVIADO
+  CONVITE_REENVIADO
+  PAPEL_ALTERADO
+  PERMISSOES_ALTERADAS
+  SESSOES_REVOGADAS
+  COLABORADOR_INATIVADO
+}
+
+enum OrigemEvento {
+  MANUAL
+  SISTEMA
+  IA
+  IMPORTACAO
+}
+
+// Adicionado no Prompt 14 (Task Engine) — mesmo racional de `EscopoResumoIA`
+// (Sprint 11): `EventoTimeline` deixa de ser exclusivo de `Processo`.
+enum EscopoEventoTimeline {
+  PROCESSO
+  TAREFA
+  // Adicionado no módulo Colaboradores.
+  COLABORADOR
+  PASTA_JURIDICA
+}
+
+model EventoTimeline {
+  id                      String               @id @default(uuid()) @db.Uuid
+  escritorioId            String               @map("escritorio_id") @db.Uuid
+  escopoTipo              EscopoEventoTimeline @default(PROCESSO) @map("escopo_tipo")
+  // Nullable desde o Prompt 14 — exatamente um entre `processoId`/`tarefaId`/
+  // `membroId` é preenchido, de acordo com `escopoTipo` (mesmo padrão de
+  // `ResumoIA`). `membroId` adicionado no módulo Colaboradores.
+  processoId              String?              @map("processo_id") @db.Uuid
+  tarefaId                String?              @map("tarefa_id") @db.Uuid
+  membroId                String?              @map("membro_id") @db.Uuid
+  pastaJuridicaId         String?              @map("pasta_juridica_id") @db.Uuid
+  tipo                    TipoEventoTimeline
+  titulo                  String
+  descricao               String?
+  dataEvento              DateTime             @map("data_evento") @db.Timestamptz
+  dataRegistro            DateTime             @default(now()) @map("data_registro") @db.Timestamptz
+  origem                  OrigemEvento         @default(MANUAL)
+  autorId                 String?              @map("autor_id") @db.Uuid
+  entidadeRelacionadaTipo String?              @map("entidade_relacionada_tipo")
+  entidadeRelacionadaId   String?              @map("entidade_relacionada_id") @db.Uuid
+  visibilidade            Visibilidade         @default(INTERNA)
+  metadados               Json                 @default("{}")
+  fixado                  Boolean              @default(false)
+  criadoEm                DateTime             @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm            DateTime             @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm              DateTime?            @map("excluido_em") @db.Timestamptz
+
+  processo      Processo?      @relation(fields: [processoId], references: [id], onDelete: Cascade)
+  tarefa        Tarefa?        @relation(fields: [tarefaId], references: [id], onDelete: Cascade)
+  membro        Membro?        @relation(fields: [membroId], references: [id], onDelete: Cascade)
+  pastaJuridica PastaJuridica? @relation(fields: [pastaJuridicaId], references: [id], onDelete: SetNull)
+
+  comentarios Comentario[]
+  fontesIa    FonteIA[]
+
+  @@index([processoId, dataEvento(sort: Desc)], map: "idx_timeline_processo_data")
+  @@index([processoId, tipo], map: "idx_timeline_processo_tipo")
+  @@index([tarefaId, dataEvento(sort: Desc)], map: "idx_timeline_tarefa_data")
+  @@index([membroId, dataEvento(sort: Desc)], map: "idx_timeline_membro_data")
+  @@index([pastaJuridicaId, dataEvento(sort: Desc)], map: "idx_timeline_pasta_juridica_data")
+  @@map("eventos_timeline")
+}
+
+// ============================================================================
+// COMMENTS
+// ============================================================================
+
+model Comentario {
+  id               String                   @id @default(uuid()) @db.Uuid
+  escritorioId     String                   @map("escritorio_id") @db.Uuid
+  processoId       String?                  @map("processo_id") @db.Uuid
+  documentoId      String?                  @map("documento_id") @db.Uuid
+  // Adicionado no Prompt 14 (Task Engine) — comentário de Tarefa, mesmo
+  // modelo já usado por Processo/Documento desde a Fase 1, nunca duplicado.
+  tarefaId         String?                  @map("tarefa_id") @db.Uuid
+  timelineEventoId String?                  @map("timeline_evento_id") @db.Uuid
+  autorId          String                   @map("autor_id") @db.Uuid
+  conteudo         String
+  comentarioPaiId  String?                  @map("comentario_pai_id") @db.Uuid
+  editado          Boolean                  @default(false)
+  visibilidade     Visibilidade             @default(INTERNA)
+  criadoEm         DateTime                 @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm     DateTime                 @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm       DateTime?                @map("excluido_em") @db.Timestamptz
+  // Ver nota em Cliente.buscaTsv.
+  buscaTsv         Unsupported("tsvector")? @map("busca_tsv")
+
+  processo       Processo?          @relation(fields: [processoId], references: [id], onDelete: Cascade)
+  documento      Documento?         @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+  tarefa         Tarefa?            @relation(fields: [tarefaId], references: [id], onDelete: Cascade)
+  timelineEvento EventoTimeline?    @relation(fields: [timelineEventoId], references: [id], onDelete: Cascade)
+  comentarioPai  Comentario?        @relation("ComentarioThread", fields: [comentarioPaiId], references: [id], onDelete: Cascade)
+  respostas      Comentario[]       @relation("ComentarioThread")
+  mencoes        ComentarioMencao[]
+
+  @@index([processoId, criadoEm], map: "idx_comentarios_processo")
+  @@index([documentoId, criadoEm], map: "idx_comentarios_documento")
+  @@index([tarefaId, criadoEm], map: "idx_comentarios_tarefa")
+  @@map("comentarios")
+}
+
+model ComentarioMencao {
+  comentarioId String @map("comentario_id") @db.Uuid
+  membroId     String @map("membro_id") @db.Uuid
+
+  comentario Comentario @relation(fields: [comentarioId], references: [id], onDelete: Cascade)
+
+  @@id([comentarioId, membroId])
+  @@map("comentario_mencao")
+}
+
+// ============================================================================
+// TAGS
+// ============================================================================
+
+model Tag {
+  id           String                   @id @default(uuid()) @db.Uuid
+  escritorioId String                   @map("escritorio_id") @db.Uuid
+  nome         String
+  cor          String
+  descricao    String?
+  criadoEm     DateTime                 @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm DateTime                 @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm   DateTime?                @map("excluido_em") @db.Timestamptz
+  // Ver nota em Cliente.buscaTsv.
+  buscaTsv     Unsupported("tsvector")? @map("busca_tsv")
+
+  processos  ProcessoTag[]
+  documentos DocumentoTag[]
+
+  @@map("tags")
+}
+
+model ProcessoTag {
+  processoId String   @map("processo_id") @db.Uuid
+  tagId      String   @map("tag_id") @db.Uuid
+  criadoEm   DateTime @default(now()) @map("criado_em") @db.Timestamptz
+
+  processo Processo @relation(fields: [processoId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([processoId, tagId])
+  @@map("processo_tag")
+}
+
+model DocumentoTag {
+  documentoId String   @map("documento_id") @db.Uuid
+  tagId       String   @map("tag_id") @db.Uuid
+  criadoEm    DateTime @default(now()) @map("criado_em") @db.Timestamptz
+
+  documento Documento @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+  tag       Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([documentoId, tagId])
+  @@map("documento_tag")
+}
+
+// ============================================================================
+// AI
+// ============================================================================
+
+enum TipoResumoIA {
+  GERAL
+  EXECUTIVO
+  CRONOLOGICO
+  PONTOS_CHAVE
+  RISCOS
+  // Adicionados na Sprint 11 (Assistente Jurídico Inteligente) — o Sprint 11
+  // pede "Resumir Documento" e "Histórico Inteligente" de Cliente além do
+  // resumo de Processo já contratado (docs/api/14-ai.md). `CRONOLOGICO` já
+  // cobre "Explicar a Timeline" (narrativa cronológica do processo), não
+  // precisou de um tipo novo.
+  RESUMO_DOCUMENTO
+  HISTORICO_CLIENTE
+  // Adicionados no Prompt 14 (Task Engine) — 5 ações de IA pedidas para
+  // Tarefa, todas reaproveitando o mesmo pipeline de `ResumoIA` (cota,
+  // cache por hash de contexto, custo estimado) em vez de uma tabela nova.
+  TAREFA_RESUMO
+  TAREFA_CHECKLIST
+  TAREFA_PROXIMOS_PASSOS
+  TAREFA_DESCRICAO
+  TAREFA_CONTEXTO
+}
+
+// Adicionado na Sprint 11 — `ResumoIA.processoId` era `NOT NULL` (só
+// cobria resumo de processo); "Resumir Documento"/"Histórico Inteligente do
+// Cliente" exigem um escopo diferente. Exatamente um entre
+// `processoId`/`documentoId`/`clienteId` é preenchido, de acordo com este
+// campo — invariante garantida na aplicação (o use case correspondente),
+// não por `CHECK` de banco, mesmo padrão de outras invariantes deste
+// projeto (ex.: unicidade de `vigente` por escopo).
+enum EscopoResumoIA {
+  PROCESSO
+  DOCUMENTO
+  CLIENTE
+  // Adicionado no Prompt 14 (Task Engine).
+  TAREFA
+}
+
+enum StatusResumoIA {
+  PENDENTE
+  GERANDO
+  PRONTO
+  FALHA
+  EXPIRADO
+}
+
+enum FeedbackResumo {
+  POSITIVO
+  NEGATIVO
+}
+
+enum TipoFonteIA {
+  DOCUMENTO
+  EVENTO_TIMELINE
+  METADADO_PROCESSO
+  // Adicionados na Sprint 11 — citar o próprio processo (num Histórico de
+  // Cliente) ou o próprio cliente (num Resumo de Documento/Processo) como
+  // fonte, agora que `ResumoIA` deixou de ser exclusivo de Processo.
+  PROCESSO
+  CLIENTE
+  // Adicionado no Prompt 14 (Task Engine).
+  TAREFA
+}
+
+model ResumoIA {
+  id                    String          @id @default(uuid()) @db.Uuid
+  escritorioId          String          @map("escritorio_id") @db.Uuid
+  escopoTipo            EscopoResumoIA  @default(PROCESSO) @map("escopo_tipo")
+  // Nullable desde a Sprint 11 — ver nota em `EscopoResumoIA`. Exatamente um
+  // entre `processoId`/`documentoId`/`clienteId`/`tarefaId` é preenchido, de
+  // acordo com `escopoTipo`.
+  processoId            String?         @map("processo_id") @db.Uuid
+  documentoId           String?         @map("documento_id") @db.Uuid
+  clienteId             String?         @map("cliente_id") @db.Uuid
+  tarefaId              String?         @map("tarefa_id") @db.Uuid
+  solicitadoPorId       String          @map("solicitado_por_id") @db.Uuid
+  tipoResumo            TipoResumoIA    @default(GERAL) @map("tipo_resumo")
+  versaoResumo          Int             @map("versao_resumo")
+  status                StatusResumoIA  @default(PENDENTE)
+  conteudo              String?
+  estruturaJson         Json?           @map("estrutura_json")
+  modelo                String
+  promptVersion         String          @map("prompt_version")
+  tokensEntrada         Int?            @map("tokens_entrada")
+  tokensSaida           Int?            @map("tokens_saida")
+  custoEstimadoCentavos Int?            @map("custo_estimado_centavos")
+  hashContexto          String          @map("hash_contexto")
+  latenciaMs            Int?            @map("latencia_ms")
+  erro                  String?
+  feedback              FeedbackResumo?
+  comentarioFeedback    String?         @map("comentario_feedback")
+  vigente               Boolean         @default(true)
+  geradoEm              DateTime?       @map("gerado_em") @db.Timestamptz
+  expiraEm              DateTime?       @map("expira_em") @db.Timestamptz
+  criadoEm              DateTime        @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm          DateTime        @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  // `onDelete: Restrict` nas 3 — mesmo racional original (resumo não
+  // sobrevive à entidade, mas exclusão é sempre soft delete na prática).
+  processo  Processo?  @relation(fields: [processoId], references: [id], onDelete: Restrict)
+  documento Documento? @relation(fields: [documentoId], references: [id], onDelete: Restrict)
+  cliente   Cliente?   @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  tarefa    Tarefa?    @relation(fields: [tarefaId], references: [id], onDelete: Restrict)
+  fontes    FonteIA[]
+
+  @@index([processoId, tipoResumo, vigente], map: "idx_resumos_ia_processo_tipo_vigente")
+  @@index([documentoId, tipoResumo, vigente], map: "idx_resumos_ia_documento_tipo_vigente")
+  @@index([clienteId, tipoResumo, vigente], map: "idx_resumos_ia_cliente_tipo_vigente")
+  @@index([tarefaId, tipoResumo, vigente], map: "idx_resumos_ia_tarefa_tipo_vigente")
+  @@index([status], map: "idx_resumos_ia_status")
+  @@index([escritorioId, criadoEm], map: "idx_resumos_ia_escritorio_periodo")
+  @@map("resumos_ia")
+}
+
+model FonteIA {
+  id                 String      @id @default(uuid()) @db.Uuid
+  resumoIaId         String      @map("resumo_ia_id") @db.Uuid
+  sourceType         TipoFonteIA @map("source_type")
+  documentoId        String?     @map("documento_id") @db.Uuid
+  eventoTimelineId   String?     @map("evento_timeline_id") @db.Uuid
+  // Adicionados na Sprint 11 — citar processo/cliente como fonte (ver nota em `TipoFonteIA`).
+  processoId         String?     @map("processo_id") @db.Uuid
+  clienteId          String?     @map("cliente_id") @db.Uuid
+  // Adicionado no Prompt 14 (Task Engine).
+  tarefaId           String?     @map("tarefa_id") @db.Uuid
+  hashFonte          String      @map("hash_fonte")
+  ordem              Int
+  trechoOuReferencia String?     @map("trecho_ou_referencia")
+  criadoEm           DateTime    @default(now()) @map("criado_em") @db.Timestamptz
+
+  resumoIa       ResumoIA        @relation(fields: [resumoIaId], references: [id], onDelete: Cascade)
+  documento      Documento?      @relation(fields: [documentoId], references: [id], onDelete: SetNull)
+  eventoTimeline EventoTimeline? @relation(fields: [eventoTimelineId], references: [id], onDelete: SetNull)
+  processo       Processo?       @relation(fields: [processoId], references: [id], onDelete: SetNull)
+  cliente        Cliente?        @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  tarefa         Tarefa?         @relation(fields: [tarefaId], references: [id], onDelete: SetNull)
+
+  @@index([resumoIaId, ordem], map: "idx_fontes_ia_resumo")
+  @@map("fontes_ia")
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+enum PrioridadeNotificacao {
+  BAIXA
+  NORMAL
+  ALTA
+  SEGURANCA
+}
+
+enum FrequenciaNotificacao {
+  IMEDIATA
+  DIARIA
+  SEMANAL
+  NUNCA
+}
+
+model Notificacao {
+  id                      String                @id @default(uuid()) @db.Uuid
+  escritorioId            String                @map("escritorio_id") @db.Uuid
+  destinatarioId          String                @map("destinatario_id") @db.Uuid
+  tipo                    String
+  titulo                  String
+  mensagem                String
+  urlAcao                 String?               @map("url_acao")
+  entidadeRelacionadaTipo String?               @map("entidade_relacionada_tipo")
+  entidadeRelacionadaId   String?               @map("entidade_relacionada_id") @db.Uuid
+  prioridade              PrioridadeNotificacao @default(NORMAL)
+  lidaEm                  DateTime?             @map("lida_em") @db.Timestamptz
+  arquivadaEm             DateTime?             @map("arquivada_em") @db.Timestamptz
+  canaisEnviados          String[]              @default([]) @map("canais_enviados")
+  agrupamentoChave        String?               @map("agrupamento_chave")
+  criadoEm                DateTime              @default(now()) @map("criado_em") @db.Timestamptz
+  expiraEm                DateTime?             @map("expira_em") @db.Timestamptz
+
+  @@index([destinatarioId, criadoEm(sort: Desc)], map: "idx_notificacoes_destinatario")
+  @@map("notificacoes")
+}
+
+model PreferenciaNotificacao {
+  id              String                @id @default(uuid()) @db.Uuid
+  membroId        String                @map("membro_id") @db.Uuid
+  tipoNotificacao String                @map("tipo_notificacao")
+  inApp           Boolean               @default(true) @map("in_app")
+  email           Boolean               @default(true)
+  frequencia      FrequenciaNotificacao @default(IMEDIATA)
+
+  @@unique([membroId, tipoNotificacao], map: "uq_preferencia_notificacao")
+  @@map("preferencias_notificacao")
+}
+
+// ============================================================================
+// AUDIT
+// ============================================================================
+
+enum TipoAtor {
+  USUARIO
+  SISTEMA
+  API
+}
+
+enum ResultadoAuditoria {
+  SUCESSO
+  FALHA
+  NEGADO
+}
+
+model LogAuditoria {
+  id            String             @id @default(uuid()) @db.Uuid
+  escritorioId  String?            @map("escritorio_id") @db.Uuid
+  atorId        String?            @map("ator_id") @db.Uuid
+  atorTipo      TipoAtor           @default(USUARIO) @map("ator_tipo")
+  sessaoId      String?            @map("sessao_id") @db.Uuid
+  acao          String
+  recursoTipo   String             @map("recurso_tipo")
+  recursoId     String?            @map("recurso_id") @db.Uuid
+  dadosAntes    Json?              @map("dados_antes")
+  dadosDepois   Json?              @map("dados_depois")
+  ip            String?
+  userAgent     String?            @map("user_agent")
+  correlationId String             @map("correlation_id") @db.Uuid
+  resultado     ResultadoAuditoria
+  motivo        String?
+  metadados     Json               @default("{}")
+  criadoEm      DateTime           @default(now()) @map("criado_em") @db.Timestamptz
+
+  @@index([escritorioId, criadoEm(sort: Desc)], map: "idx_auditoria_escritorio_periodo")
+  @@index([escritorioId, recursoTipo, recursoId, criadoEm(sort: Desc)], map: "idx_auditoria_contexto")
+  @@index([recursoTipo, recursoId, criadoEm(sort: Desc)], map: "idx_auditoria_recurso")
+  @@index([atorId, criadoEm(sort: Desc)], map: "idx_auditoria_ator")
+  @@map("log_auditoria")
+}
+
+// ============================================================================
+// SHARED — Outbox (entrega confiável de evento de domínio, docs/backend/09-filas.md §9.4)
+// ============================================================================
+
+model EventoOutbox {
+  id           String    @id @default(uuid()) @db.Uuid
+  escritorioId String?   @map("escritorio_id") @db.Uuid
+  tipo         String
+  payload      Json
+  criadoEm     DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  processadoEm DateTime? @map("processado_em") @db.Timestamptz
+
+  @@index([processadoEm], map: "idx_eventos_outbox_pendente")
+  @@map("eventos_outbox")
+}
+
+// ============================================================================
+// CONFIGURATION ENGINE (Sprint 13 / Prompt 13, docs/backend-implementation/22-configuration-engine.md)
+//
+// Geral/Financeiro/IA reaproveitam `Escritorio.configuracoes` (Json, existia
+// desde a Fase 1, nunca usado) — não precisam de tabela própria. Os
+// catálogos abaixo têm ciclo de vida próprio (CRUD, N linhas por escritório),
+// por isso são tabelas reais, nunca dentro do Json.
+// ============================================================================
+
+enum EntidadeConfiguravel {
+  CLIENTE
+  PROCESSO
+  DOCUMENTO
+  TAREFA
+  // Adicionado no módulo Colaboradores — permite Campos Extras/Campos
+  // Obrigatórios configuráveis para o cadastro de colaborador.
+  COLABORADOR
+  MOVIMENTACAO_EXTRAJUDICIAL
+  PASTA_JURIDICA
+}
+
+enum TipoCampoExtra {
+  TEXTO
+  NUMERO
+  DATA
+  BOOLEANO
+  SELECT
+  MULTISELECT
+  TEXTAREA
+}
+
+model CampoExtra {
+  id           String               @id @default(uuid()) @db.Uuid
+  escritorioId String               @map("escritorio_id") @db.Uuid
+  entidade     EntidadeConfiguravel
+  nome         String
+  chave        String
+  tipo         TipoCampoExtra
+  obrigatorio  Boolean              @default(false)
+  opcoes       String[]             @default([])
+  valorPadrao  String?              @map("valor_padrao")
+  ordem        Int                  @default(0)
+  ativo        Boolean              @default(true)
+  criadoEm     DateTime             @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm DateTime             @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm   DateTime?            @map("excluido_em") @db.Timestamptz
+
+  escritorio Escritorio @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+
+  @@unique([escritorioId, entidade, chave], map: "uq_campos_extra_escritorio_entidade_chave")
+  @@index([escritorioId, entidade], map: "idx_campos_extra_escritorio_entidade")
+  @@map("campos_extra")
+}
+
+model CampoObrigatorio {
+  id           String               @id @default(uuid()) @db.Uuid
+  escritorioId String               @map("escritorio_id") @db.Uuid
+  entidade     EntidadeConfiguravel
+  campo        String
+  obrigatorio  Boolean              @default(false)
+  atualizadoEm DateTime             @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  escritorio Escritorio @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+
+  @@unique([escritorioId, entidade, campo], map: "uq_campos_obrigatorios_escritorio_entidade_campo")
+  @@map("campos_obrigatorios")
+}
+
+model ConjuntoValores {
+  id           String    @id @default(uuid()) @db.Uuid
+  escritorioId String    @map("escritorio_id") @db.Uuid
+  nome         String
+  descricao    String?
+  ativo        Boolean   @default(true)
+  criadoEm     DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm   DateTime? @map("excluido_em") @db.Timestamptz
+
+  escritorio Escritorio          @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  itens      ConjuntoValorItem[]
+
+  @@unique([escritorioId, nome], map: "uq_conjuntos_valores_escritorio_nome")
+  @@map("conjuntos_valores")
+}
+
+model ConjuntoValorItem {
+  id         String  @id @default(uuid()) @db.Uuid
+  conjuntoId String  @map("conjunto_id") @db.Uuid
+  valor      String
+  ordem      Int     @default(0)
+  ativo      Boolean @default(true)
+
+  conjunto ConjuntoValores @relation(fields: [conjuntoId], references: [id], onDelete: Cascade)
+
+  @@index([conjuntoId], map: "idx_conjunto_valor_itens_conjunto")
+  @@map("conjunto_valor_itens")
+}
+
+model CategoriaTarefa {
+  id           String    @id @default(uuid()) @db.Uuid
+  escritorioId String    @map("escritorio_id") @db.Uuid
+  nome         String
+  cor          String    @default("#6366F1")
+  ordem        Int       @default(0)
+  ativo        Boolean   @default(true)
+  criadoEm     DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm   DateTime? @map("excluido_em") @db.Timestamptz
+
+  escritorio    Escritorio     @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  modelosTarefa ModeloTarefa[]
+
+  @@unique([escritorioId, nome], map: "uq_categorias_tarefa_escritorio_nome")
+  @@map("categorias_tarefa")
+}
+
+model GrupoColaboradores {
+  id           String    @id @default(uuid()) @db.Uuid
+  escritorioId String    @map("escritorio_id") @db.Uuid
+  nome         String
+  descricao    String?
+  ativo        Boolean   @default(true)
+  criadoEm     DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm   DateTime? @map("excluido_em") @db.Timestamptz
+
+  escritorio Escritorio               @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  membros    GrupoColaboradorMembro[]
+
+  @@unique([escritorioId, nome], map: "uq_grupos_colaboradores_escritorio_nome")
+  @@map("grupos_colaboradores")
+}
+
+// Catálogo de Cargos (título de trabalho: Advogado, Estagiário...) do módulo
+// Colaboradores — clone estrutural de `GrupoColaboradores` (mesmo padrão de
+// CRUD/soft-delete/unicidade por escritório). Não confundir com `Papel`
+// (função de permissão: OWNER/ADMIN) nem com `GrupoColaboradores`
+// (agrupamento organizacional) — as três são conceitos independentes.
+model Cargo {
+  id           String    @id @default(uuid()) @db.Uuid
+  escritorioId String    @map("escritorio_id") @db.Uuid
+  nome         String
+  descricao    String?
+  ativo        Boolean   @default(true)
+  ordem        Int       @default(0)
+  criadoEm     DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm   DateTime? @map("excluido_em") @db.Timestamptz
+
+  escritorio Escritorio @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  membros    Membro[]
+
+  @@unique([escritorioId, nome], map: "uq_cargos_escritorio_nome")
+  @@map("cargos")
+}
+
+model GrupoColaboradorMembro {
+  id       String @id @default(uuid()) @db.Uuid
+  grupoId  String @map("grupo_id") @db.Uuid
+  membroId String @map("membro_id") @db.Uuid
+
+  grupo  GrupoColaboradores @relation(fields: [grupoId], references: [id], onDelete: Cascade)
+  membro Membro             @relation(fields: [membroId], references: [id], onDelete: Cascade)
+
+  @@unique([grupoId, membroId], map: "uq_grupo_colaborador_membros")
+  @@index([membroId], map: "idx_grupo_colaborador_membros_membro")
+  @@map("grupo_colaborador_membros")
+}
+
+model ModeloTarefa {
+  id               String    @id @default(uuid()) @db.Uuid
+  escritorioId     String    @map("escritorio_id") @db.Uuid
+  nome             String
+  descricao        String?
+  categoriaId      String?   @map("categoria_id") @db.Uuid
+  prazoDiasPadrao  Int       @default(0) @map("prazo_dias_padrao")
+  prioridadePadrao String    @default("MEDIA") @map("prioridade_padrao")
+  checklist        String[]  @default([])
+  ativo            Boolean   @default(true)
+  criadoEm         DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm     DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm       DateTime? @map("excluido_em") @db.Timestamptz
+
+  escritorio Escritorio       @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  categoria  CategoriaTarefa? @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+
+  @@index([escritorioId], map: "idx_modelos_tarefa_escritorio")
+  @@map("modelos_tarefa")
+}
+
+enum TipoFeriado {
+  NACIONAL
+  ESTADUAL
+  MUNICIPAL
+  FORENSE
+  PERSONALIZADO
+}
+
+model Feriado {
+  id              String      @id @default(uuid()) @db.Uuid
+  escritorioId    String      @map("escritorio_id") @db.Uuid
+  nome            String
+  data            DateTime    @db.Date
+  tipo            TipoFeriado @default(PERSONALIZADO)
+  uf              String?     @db.VarChar(2)
+  recorrenteAnual Boolean     @default(false) @map("recorrente_anual")
+  ativo           Boolean     @default(true)
+  criadoEm        DateTime    @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm    DateTime    @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm      DateTime?   @map("excluido_em") @db.Timestamptz
+
+  escritorio Escritorio @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+
+  @@unique([escritorioId, nome, data], map: "uq_feriados_escritorio_nome_data")
+  @@index([escritorioId, data], map: "idx_feriados_escritorio_data")
+  @@map("feriados")
+}
+
+// ============================================================================
+// TASK ENGINE (Prompt 14, docs/backend-implementation/23-task-engine.md)
+//
+// Status/Prioridade NUNCA são enum fixo — apontam para itens de
+// `ConjuntoValores`/`ConjuntoValorItem` (Configuration Engine, Prompt 13),
+// auto-provisionados por escritório na primeira tarefa criada. Categoria/
+// Modelo reaproveitam `CategoriaTarefa`/`ModeloTarefa` (mesmo Prompt 13),
+// nunca duplicados. Toda referência cross-módulo (categoria, modelo,
+// status, prioridade, responsável, equipe, grupo de colaboradores) é
+// coluna solta, validada na aplicação — mesmo desacoplamento que
+// `Processo.responsavelPrincipalId`/`ProcessoMembro.membroId` já usam
+// (nenhuma FK de banco para `Membro`/`Equipe`/`ConjuntoValorItem` a
+// partir daqui). Referências dentro do próprio módulo de Timeline/
+// Comentários/IA (já generalizados para Tarefa acima, mesma técnica do
+// Sprint 11) e dentro do próprio Task Engine usam relação real do Prisma.
+// ============================================================================
+
+enum TipoVinculoTarefa {
+  CLIENTE
+  PROCESSO
+  DOCUMENTO
+  // Catálogo-pronto — módulos de negócio ainda não implementados (mesmo
+  // tratamento de `financeiro:*` no Prompt 12): a tabela aceita o vínculo,
+  // mas nenhuma tela resolve o recurso além de Cliente/Processo/Documento.
+  CONTRATO
+  SERVICO
+  FINANCEIRO
+  PUBLICACAO
+  PEDIDO
+  REGISTRO_TRABALHO
+  PASTA_JURIDICA
+  MOVIMENTACAO_EXTRAJUDICIAL
+  MOVIMENTACAO_JUDICIAL
+}
+
+enum FrequenciaRecorrencia {
+  DIARIA
+  SEMANAL
+  MENSAL
+  ANUAL
+  DIAS_UTEIS
+  DIAS_ESPECIFICOS
+}
+
+model TarefaRecorrencia {
+  id                 String                @id @default(uuid()) @db.Uuid
+  escritorioId       String                @map("escritorio_id") @db.Uuid
+  frequencia         FrequenciaRecorrencia
+  intervalo          Int                   @default(1)
+  /// Só usado quando `frequencia = DIAS_ESPECIFICOS` — 0 (domingo) a 6 (sábado).
+  diasSemana         Int[]                 @default([])
+  respeitarDiasUteis Boolean               @default(false) @map("respeitar_dias_uteis")
+  dataFim            DateTime?             @map("data_fim") @db.Date
+  criadoEm           DateTime              @default(now()) @map("criado_em") @db.Timestamptz
+
+  escritorio Escritorio @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  tarefas    Tarefa[]
+
+  @@map("tarefa_recorrencias")
+}
+
+model Tarefa {
+  id                     String    @id @default(uuid()) @db.Uuid
+  escritorioId           String    @map("escritorio_id") @db.Uuid
+  titulo                 String
+  descricao              String?
+  categoriaId            String?   @map("categoria_id") @db.Uuid
+  statusId               String?   @map("status_id") @db.Uuid
+  prioridadeId           String?   @map("prioridade_id") @db.Uuid
+  modeloOrigemId         String?   @map("modelo_origem_id") @db.Uuid
+  responsavelPrincipalId String?   @map("responsavel_principal_id") @db.Uuid
+  equipeId               String?   @map("equipe_id") @db.Uuid
+  grupoColaboradoresId   String?   @map("grupo_colaboradores_id") @db.Uuid
+  dataInicio             DateTime? @map("data_inicio") @db.Date
+  dataVencimento         DateTime? @map("data_vencimento") @db.Date
+  recorrenciaId          String?   @map("recorrencia_id") @db.Uuid
+  tarefaOrigemId         String?   @map("tarefa_origem_id") @db.Uuid
+  criadoPorId            String    @map("criado_por_id") @db.Uuid
+  concluidaEm            DateTime? @map("concluida_em") @db.Timestamptz
+  canceladaEm            DateTime? @map("cancelada_em") @db.Timestamptz
+  motivoCancelamento     String?   @map("motivo_cancelamento")
+  arquivadaEm            DateTime? @map("arquivada_em") @db.Timestamptz
+  criadoEm               DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm           DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz
+  excluidoEm             DateTime? @map("excluido_em") @db.Timestamptz
+
+  escritorio   Escritorio         @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
+  recorrencia  TarefaRecorrencia? @relation(fields: [recorrenciaId], references: [id], onDelete: SetNull)
+  tarefaOrigem Tarefa?            @relation("TarefaRecorrenteOrigem", fields: [tarefaOrigemId], references: [id], onDelete: SetNull)
+
+  instanciasRecorrentes  Tarefa[]                    @relation("TarefaRecorrenteOrigem")
+  checklist              TarefaChecklistItem[]
+  responsaveisAuxiliares TarefaResponsavelAuxiliar[]
+  vinculos               TarefaVinculo[]
+  favoritos              TarefaFavorito[]
+  dependencias           TarefaDependencia[]         @relation("TarefaDependeDe")
+  bloqueando             TarefaDependencia[]         @relation("TarefaDependenciaDe")
+  eventosTimeline        EventoTimeline[]
+  comentarios            Comentario[]
+  resumosIa              ResumoIA[]
+  fontesIa               FonteIA[]
+
+  @@index([escritorioId, responsavelPrincipalId], map: "idx_tarefas_escritorio_responsavel")
+  @@index([escritorioId, dataVencimento], map: "idx_tarefas_escritorio_vencimento")
+  @@index([escritorioId, statusId], map: "idx_tarefas_escritorio_status")
+  @@index([escritorioId, categoriaId], map: "idx_tarefas_escritorio_categoria")
+  @@index([escritorioId, equipeId], map: "idx_tarefas_escritorio_equipe")
+  @@map("tarefas")
+}
+
+model TarefaChecklistItem {
+  id             String    @id @default(uuid()) @db.Uuid
+  tarefaId       String    @map("tarefa_id") @db.Uuid
+  titulo         String
+  obrigatorio    Boolean   @default(false)
+  ordem          Int       @default(0)
+  concluidoEm    DateTime? @map("concluido_em") @db.Timestamptz
+  concluidoPorId String?   @map("concluido_por_id") @db.Uuid
+  criadoEm       DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+
+  tarefa Tarefa @relation(fields: [tarefaId], references: [id], onDelete: Cascade)
+
+  @@index([tarefaId, ordem], map: "idx_tarefa_checklist_tarefa")
+  @@map("tarefa_checklist_itens")
+}
+
+model TarefaResponsavelAuxiliar {
+  id       String @id @default(uuid()) @db.Uuid
+  tarefaId String @map("tarefa_id") @db.Uuid
+  membroId String @map("membro_id") @db.Uuid
+
+  tarefa Tarefa @relation(fields: [tarefaId], references: [id], onDelete: Cascade)
+
+  @@unique([tarefaId, membroId], map: "uq_tarefa_responsavel_auxiliar")
+  @@map("tarefa_responsaveis_auxiliares")
+}
+
+/// `tarefa`/`tarefaId` = a tarefa dependente (bloqueada); `dependeDe`/
+/// `dependeDeId` = o pré-requisito (precisa concluir primeiro).
+model TarefaDependencia {
+  id          String   @id @default(uuid()) @db.Uuid
+  tarefaId    String   @map("tarefa_id") @db.Uuid
+  dependeDeId String   @map("depende_de_id") @db.Uuid
+  criadoEm    DateTime @default(now()) @map("criado_em") @db.Timestamptz
+
+  tarefa    Tarefa @relation("TarefaDependeDe", fields: [tarefaId], references: [id], onDelete: Cascade)
+  dependeDe Tarefa @relation("TarefaDependenciaDe", fields: [dependeDeId], references: [id], onDelete: Cascade)
+
+  @@unique([tarefaId, dependeDeId], map: "uq_tarefa_dependencia")
+  @@map("tarefa_dependencias")
+}
+
+model TarefaVinculo {
+  id          String            @id @default(uuid()) @db.Uuid
+  tarefaId    String            @map("tarefa_id") @db.Uuid
+  tipoRecurso TipoVinculoTarefa @map("tipo_recurso")
+  recursoId   String            @map("recurso_id") @db.Uuid
+  criadoEm    DateTime          @default(now()) @map("criado_em") @db.Timestamptz
+
+  tarefa Tarefa @relation(fields: [tarefaId], references: [id], onDelete: Cascade)
+
+  @@unique([tarefaId, tipoRecurso, recursoId], map: "uq_tarefa_vinculo")
+  @@index([tipoRecurso, recursoId], map: "idx_tarefa_vinculo_recurso")
+  @@map("tarefa_vinculos")
+}
+
+model TarefaFavorito {
+  tarefaId String   @map("tarefa_id") @db.Uuid
+  membroId String   @map("membro_id") @db.Uuid
+  criadoEm DateTime @default(now()) @map("criado_em") @db.Timestamptz
+
+  tarefa Tarefa @relation(fields: [tarefaId], references: [id], onDelete: Cascade)
+
+  @@id([tarefaId, membroId])
+  @@map("tarefa_favorito")
+}

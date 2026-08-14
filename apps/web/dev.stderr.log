@@ -1,0 +1,66 @@
+ ⨯ ./src/mocks/handlers/legal-folders.ts
+Error:   [31mx[0m Expression expected
+     ,-[[36;1;4mC:\Users\luiz.lazari\Desktop\Claude-ADV-CODEX\apps\web\src\mocks\handlers\legal-folders.ts[0m:97:1]
+ [2m 94[0m |     const input = (await request.json()) as { prefixo: string };
+ [2m 95[0m |     return HttpResponse.json({ id: 'legal-folder-created-2', nome: `${input.prefixo}/2` }, { status: 201 });
+ [2m 96[0m |   }),
+ [2m 97[0m |   ),
+     : [35;1m  ^[0m
+ [2m 98[0m |   http.patch(`${base}/legal-folders/:id`, ({ params }) => HttpResponse.json({ id: params.id })),
+ [2m 99[0m |   http.post(`${base}/legal-folders/:id/archive`, () => new HttpResponse(null, { status: 204 })),
+ [2m100[0m | ];
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/mocks/handlers/legal-folders.ts
+./src/mocks/demo/handlers.ts
+./src/mocks/browser.ts
+./src/providers/mock-provider.tsx
+ ⨯ ./src/mocks/handlers/legal-folders.ts
+Error:   [31mx[0m Expression expected
+     ,-[[36;1;4mC:\Users\luiz.lazari\Desktop\Claude-ADV-CODEX\apps\web\src\mocks\handlers\legal-folders.ts[0m:97:1]
+ [2m 94[0m |     const input = (await request.json()) as { prefixo: string };
+ [2m 95[0m |     return HttpResponse.json({ id: 'legal-folder-created-2', nome: `${input.prefixo}/2` }, { status: 201 });
+ [2m 96[0m |   }),
+ [2m 97[0m |   ),
+     : [35;1m  ^[0m
+ [2m 98[0m |   http.patch(`${base}/legal-folders/:id`, ({ params }) => HttpResponse.json({ id: params.id })),
+ [2m 99[0m |   http.post(`${base}/legal-folders/:id/archive`, () => new HttpResponse(null, { status: 204 })),
+ [2m100[0m | ];
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/mocks/handlers/legal-folders.ts
+./src/mocks/demo/handlers.ts
+./src/mocks/browser.ts
+./src/providers/mock-provider.tsx
+ ⨯ ./src/mocks/handlers/legal-folders.ts
+Error:   [31mx[0m Expression expected
+     ,-[[36;1;4mC:\Users\luiz.lazari\Desktop\Claude-ADV-CODEX\apps\web\src\mocks\handlers\legal-folders.ts[0m:97:1]
+ [2m 94[0m |     const input = (await request.json()) as { prefixo: string };
+ [2m 95[0m |     return HttpResponse.json({ id: 'legal-folder-created-2', nome: `${input.prefixo}/2` }, { status: 201 });
+ [2m 96[0m |   }),
+ [2m 97[0m |   ),
+     : [35;1m  ^[0m
+ [2m 98[0m |   http.patch(`${base}/legal-folders/:id`, ({ params }) => HttpResponse.json({ id: params.id })),
+ [2m 99[0m |   http.post(`${base}/legal-folders/:id/archive`, () => new HttpResponse(null, { status: 204 })),
+ [2m100[0m | ];
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/mocks/handlers/legal-folders.ts
+./src/mocks/demo/handlers.ts
+./src/mocks/browser.ts
+./src/providers/mock-provider.tsx
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload

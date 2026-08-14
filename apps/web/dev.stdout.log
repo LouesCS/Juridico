@@ -1,0 +1,280 @@
+
+> @quilombo-dev/web@0.1.0 dev:mock
+> cross-env NEXT_PUBLIC_API_MOCKING=enabled next dev -p 3001
+
+   ▲ Next.js 15.5.22
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.3.19:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 11.5s
+ ✓ Compiled /middleware in 403ms (116 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 10.2s (1573 modules)
+ GET /login?next=%2F 200 in 12554ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1567ms (1574 modules)
+ GET /dashboard 404 in 2380ms
+ ○ Compiling / ...
+ ✓ Compiled / in 5.6s (2107 modules)
+ GET / 200 in 7666ms
+ ○ Compiling /configuracoes-captura ...
+ ✓ Compiled /configuracoes-captura in 2.3s (2119 modules)
+ GET /configuracoes-captura 200 in 3038ms
+ ○ Compiling /perfil ...
+ ✓ Compiled /perfil in 1487ms (2150 modules)
+ GET /perfil 200 in 1744ms
+ ○ Compiling /clientes ...
+ ✓ Compiled /clientes in 4.2s (2403 modules)
+ GET /clientes 200 in 4663ms
+ ✓ Compiled in 1288ms (2417 modules)
+ GET /clientes 200 in 199ms
+ ✓ Compiled in 694ms (1107 modules)
+ GET /clientes 200 in 81ms
+ ✓ Compiled in 1977ms (2421 modules)
+ GET /clientes 200 in 246ms
+ ✓ Compiled in 1042ms (2421 modules)
+ GET /clientes 200 in 265ms
+ ✓ Compiled in 979ms (2421 modules)
+ GET /clientes 200 in 153ms
+ ✓ Compiled in 1422ms (2421 modules)
+ GET /clientes 200 in 252ms
+ ✓ Compiled in 394ms (1109 modules)
+ GET /clientes 200 in 65ms
+ ✓ Compiled in 1541ms (2421 modules)
+ GET /clientes 200 in 256ms
+ ✓ Compiled in 319ms (1109 modules)
+ GET /clientes 200 in 70ms
+ ✓ Compiled in 1388ms (2421 modules)
+ GET /clientes 200 in 154ms
+ ✓ Compiled in 974ms (2421 modules)
+ GET /clientes 200 in 189ms
+ GET /clientes 200 in 1074ms
+ GET /configuracoes-captura 200 in 137ms
+ ✓ Compiled in 1342ms (2421 modules)
+ GET /configuracoes-captura?pasta=pasta-demo-1 200 in 140ms
+ ✓ Compiled in 735ms (2421 modules)
+ GET /configuracoes-captura?pasta=pasta-demo-1 200 in 143ms
+ ✓ Compiled in 743ms (2421 modules)
+ GET /configuracoes-captura?pasta=pasta-demo-1 200 in 139ms
+ ✓ Compiled in 455ms (1109 modules)
+ GET /configuracoes-captura?pasta=pasta-demo-1 200 in 71ms
+ ✓ Compiled in 1284ms (2421 modules)
+ GET /configuracoes-captura?pasta=pasta-demo-1 200 in 118ms
+ GET /configuracoes-captura?pasta=pasta-demo-1 200 in 817ms
+ ○ Compiling /documentos ...
+ ✓ Compiled /documentos in 2.3s (2417 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 2567ms
+ ✓ Compiled in 1505ms (2431 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 344ms
+ ✓ Compiled in 640ms (1110 modules)
+ ✓ Compiled in 344ms (1110 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 199ms
+ GET /documentos?pastaId=pasta-demo-1 200 in 53ms
+ ✓ Compiled in 347ms (1110 modules)
+ ✓ Compiled in 361ms (1110 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 314ms
+ GET /documentos?pastaId=pasta-demo-1 200 in 84ms
+ ✓ Compiled in 964ms (1110 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 102ms
+ ✓ Compiled in 2.3s (2431 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 184ms
+ ✓ Compiled in 767ms (2431 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 318ms
+ GET /documentos?pastaId=pasta-demo-1 200 in 286ms
+ ✓ Compiled in 1851ms (2547 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 962ms
+ GET /documentos?pastaId=pasta-demo-1 200 in 40ms
+ ✓ Compiled in 362ms (1110 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 144ms
+ ✓ Compiled in 1261ms (2431 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 135ms
+ ✓ Compiled in 2.6s (2431 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 201ms
+ ✓ Compiled in 1777ms (2431 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 164ms
+ ✓ Compiled in 1530ms (2433 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 264ms
+ ✓ Compiled in 529ms (1111 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 90ms
+ ✓ Compiled in 360ms (1111 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 48ms
+ ✓ Compiled in 1376ms (2433 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 183ms
+ ✓ Compiled in 299ms (1111 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 57ms
+ ✓ Compiled in 2.3s (2433 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 221ms
+ ✓ Compiled in 389ms (1111 modules)
+ GET /documentos?pastaId=pasta-demo-1 200 in 55ms
+ GET /documentos?pastaId=pasta-demo-1 200 in 919ms
+ GET /configuracoes-captura 200 in 152ms
+ ○ Compiling /pastas/[id] ...
+ ✓ Compiled /pastas/[id] in 6.5s (2435 modules)
+ GET /pastas/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee 200 in 12797ms
+ ○ Compiling /clientes/[id] ...
+ ✓ Compiled /clientes/[id] in 5.8s (2396 modules)
+ GET /clientes/11111111-1111-4111-8111-111111111111 200 in 7176ms
+ GET /clientes/11111111-1111-4111-8111-111111111111 200 in 1007ms
+ GET /pastas/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee 200 in 189ms
+ ○ Compiling /pastas ...
+ ✓ Compiled /pastas in 5s (2394 modules)
+ GET /pastas 200 in 6577ms
+ ○ Compiling /movimentacoes-judiciais ...
+ ✓ Compiled /movimentacoes-judiciais in 3.2s (2388 modules)
+ GET /movimentacoes-judiciais 200 in 3517ms
+ GET /pastas 200 in 128ms
+ GET /pastas 200 in 835ms
+ ✓ Compiled in 1675ms (2400 modules)
+ GET /pastas 200 in 144ms
+ ✓ Compiled in 372ms (1124 modules)
+ GET /pastas 200 in 61ms
+ ✓ Compiled in 316ms (1124 modules)
+ GET /pastas 200 in 58ms
+ ✓ Compiled in 387ms (1124 modules)
+ GET /pastas 200 in 93ms
+ ✓ Compiled in 318ms (1124 modules)
+ GET /pastas 200 in 60ms
+ ✓ Compiled in 310ms (1124 modules)
+ GET /pastas 200 in 57ms
+ ✓ Compiled in 1960ms (2400 modules)
+ GET /pastas 200 in 110ms
+ GET /pastas 200 in 940ms
+ GET /pastas/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee 200 in 231ms
+ GET /pastas 200 in 108ms
+ ✓ Compiled in 6.6s (2400 modules)
+ GET /pastas 200 in 436ms
+ ✓ Compiled in 4.9s (2400 modules)
+ GET /pastas 200 in 400ms
+ ✓ Compiled in 1646ms (2400 modules)
+ GET /pastas 200 in 257ms
+ ✓ Compiled in 2.8s (2400 modules)
+ GET /pastas 200 in 303ms
+ ✓ Compiled in 2.2s (1124 modules)
+ GET /pastas 200 in 172ms
+ ✓ Compiled in 2s (2400 modules)
+ GET /pastas 200 in 282ms
+ ✓ Compiled in 849ms (1124 modules)
+ GET /pastas 200 in 273ms
+ ✓ Compiled in 2.1s (2400 modules)
+ GET /pastas 200 in 186ms
+ ✓ Compiled in 1708ms (2400 modules)
+ GET /pastas 200 in 168ms
+ ✓ Compiled in 1098ms (2400 modules)
+ GET /pastas 200 in 135ms
+ ✓ Compiled in 665ms (2400 modules)
+ GET /pastas 200 in 105ms
+ ✓ Compiled in 1242ms (2400 modules)
+ GET /pastas 200 in 129ms
+ ✓ Compiled in 1060ms (2400 modules)
+ GET /pastas 200 in 142ms
+ ✓ Compiled in 633ms (2400 modules)
+ GET /pastas 200 in 110ms
+ ✓ Compiled in 1854ms (2400 modules)
+ GET /pastas 200 in 165ms
+ ✓ Compiled in 869ms (2400 modules)
+ GET /pastas 200 in 130ms
+ ✓ Compiled in 873ms (2400 modules)
+ GET /pastas 200 in 123ms
+ ✓ Compiled in 2.6s (2400 modules)
+ GET /pastas 200 in 127ms
+ ✓ Compiled in 1602ms (2400 modules)
+ GET /pastas 200 in 127ms
+ ✓ Compiled in 1601ms (2400 modules)
+ GET /pastas 200 in 207ms
+ ✓ Compiled in 1081ms (2400 modules)
+ GET /pastas 200 in 150ms
+ ✓ Compiled in 450ms (1124 modules)
+ GET /pastas 200 in 308ms
+ ✓ Compiled in 368ms (1124 modules)
+ ✓ Compiled in 400ms (1124 modules)
+ GET /pastas 200 in 351ms
+ GET /pastas 200 in 60ms
+ ✓ Compiled in 368ms (1124 modules)
+ GET /pastas 200 in 51ms
+ ✓ Compiled in 2.2s (2400 modules)
+ GET /pastas 200 in 101ms
+ ✓ Compiled in 931ms (2400 modules)
+ GET /pastas 200 in 230ms
+ ✓ Compiled in 2s (1124 modules)
+ GET /pastas 200 in 53ms
+ ✓ Compiled in 2.5s (2400 modules)
+ GET /pastas 200 in 216ms
+ ✓ Compiled in 1225ms (2400 modules)
+ GET /pastas 200 in 155ms
+ ✓ Compiled in 2.5s (1124 modules)
+ GET /pastas 200 in 49ms
+ ○ Compiling /_error ...
+ GET /pastas 500 in 6288ms
+ GET /pastas 500 in 31ms
+ GET /pastas 500 in 37ms
+ GET /pastas 500 in 34ms
+ ✓ Compiled /_error in 1937ms (2651 modules)
+ GET /pastas 200 in 1808ms
+ ✓ Compiled in 3.5s (2651 modules)
+ GET /pastas 200 in 252ms
+ GET /pastas 200 in 1149ms
+ ✓ Compiled in 2.6s (2651 modules)
+ GET /pastas 200 in 176ms
+ ✓ Compiled in 1072ms (2651 modules)
+ GET /pastas 200 in 118ms
+ ✓ Compiled in 803ms (2651 modules)
+ GET /pastas 200 in 128ms
+ ✓ Compiled in 351ms (1276 modules)
+ GET /pastas 200 in 70ms
+ ✓ Compiled in 1415ms (2651 modules)
+ GET /pastas 200 in 114ms
+ ✓ Compiled in 409ms (1276 modules)
+ GET /pastas 200 in 51ms
+ ✓ Compiled in 369ms (1276 modules)
+ GET /pastas 200 in 53ms
+ ✓ Compiled in 1884ms (2651 modules)
+ GET /pastas 200 in 156ms
+ ✓ Compiled in 3.6s (2651 modules)
+ GET /pastas 200 in 266ms
+ ✓ Compiled in 1206ms (2651 modules)
+ GET /pastas 200 in 1123ms
+ ✓ Compiled in 3s (2651 modules)
+ GET /pastas 200 in 122ms
+ ✓ Compiled in 816ms (2651 modules)
+ GET /pastas 200 in 193ms
+ ✓ Compiled in 979ms (2651 modules)
+ GET /pastas 200 in 108ms
+ ✓ Compiled in 3.5s (2651 modules)
+ GET /pastas 200 in 124ms
+ ✓ Compiled in 811ms (2651 modules)
+ GET /pastas 200 in 139ms
+ ✓ Compiled in 636ms (2653 modules)
+ GET /pastas 200 in 102ms
+ ✓ Compiled in 426ms (1277 modules)
+ GET /pastas 200 in 86ms
+ ✓ Compiled in 1820ms (2653 modules)
+ GET /pastas 200 in 138ms
+ ✓ Compiled in 462ms (1277 modules)
+ GET /pastas 200 in 46ms
+ ✓ Compiled in 381ms (1277 modules)
+ GET /pastas 200 in 50ms
+ ✓ Compiled in 1478ms (2653 modules)
+ GET /pastas 200 in 106ms
+ ✓ Compiled in 355ms (1277 modules)
+ GET /pastas 200 in 53ms
+ ✓ Compiled in 346ms (1277 modules)
+ GET /pastas 200 in 59ms
+ ✓ Compiled in 978ms (2653 modules)
+ GET /pastas 200 in 112ms
+ ✓ Compiled in 1033ms (1277 modules)
+ GET /pastas 200 in 58ms
+ ✓ Compiled in 3.4s (2653 modules)
+ GET /pastas 200 in 440ms
+ GET /pastas 200 in 972ms
+ ○ Compiling /contratos ...
+ ✓ Compiled /configuracoes-captura in 20.3s (2684 modules)
+ GET /contratos 200 in 21958ms
+ GET /configuracoes-captura 200 in 10517ms
+ GET /pastas?sort=-criadoEm 200 in 9026ms
+ GET /configuracoes-captura 200 in 115ms
+ GET /configuracoes-captura 200 in 386ms
+ ○ Compiling / ...
+ ✓ Compiled / in 4.3s (1421 modules)
+ GET / 200 in 5003ms

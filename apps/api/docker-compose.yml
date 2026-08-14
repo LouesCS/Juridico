@@ -1,0 +1,103 @@
+version: '3.9'
+
+# Reafirma docs/backend/12-docker.md. Ambiente de DESENVOLVIMENTO LOCAL —
+# produção usa serviços gerenciados (ver docs/10-roadmap-e-decisoes.md §10.1).
+#
+# PENDÊNCIA (docs/backend-implementation/00-status.md): o serviço `worker`
+# está declarado, mas o entrypoint `dist/src/jobs/main.js` ainda não existe
+# nesta rodada — filas BullMQ (documents/search/ai/notifications/maintenance)
+# são a próxima etapa. O serviço fica comentado até esse entrypoint existir,
+# para não anunciar algo que ainda não roda.
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: quilombo
+      POSTGRES_PASSWORD: quilombo
+      POSTGRES_DB: quilombo_dev
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U quilombo -d quilombo_dev']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    ports:
+      - '6379:6379'
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: quilombo
+      MINIO_ROOT_PASSWORD: quilombo123
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - storage-data:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - '1025:1025' # SMTP
+      - '8025:8025' # UI web
+
+  api:
+    build:
+      context: .
+      target: build
+    command: npm run start:dev
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://quilombo:quilombo@postgres:5432/quilombo_dev?schema=public
+      REDIS_URL: redis://redis:6379
+      MAIL_SMTP_HOST: mailpit
+      STORAGE_S3_ENDPOINT: http://minio:9000
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./src:/app/src
+      - ./prisma:/app/prisma
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  # worker:
+  #   build:
+  #     context: .
+  #     target: build
+  #   command: node dist/src/jobs/main.js   # pendência — ver nota acima
+  #   env_file: .env
+  #   depends_on: [postgres, redis, minio]
+
+volumes:
+  pgdata:
+  redisdata:
+  storage-data:
+
+networks:
+  default:
+    name: quilombo-dev-network

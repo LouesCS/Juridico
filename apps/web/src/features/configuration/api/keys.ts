@@ -1,0 +1,15 @@
+export const configurationKeys = {
+  all: (officeId: string) => ['office', officeId, 'configuration'] as const,
+  dashboard: (officeId: string) => [...configurationKeys.all(officeId), 'dashboard'] as const,
+  general: (officeId: string) => [...configurationKeys.all(officeId), 'general'] as const,
+  financial: (officeId: string) => [...configurationKeys.all(officeId), 'financial'] as const,
+  ai: (officeId: string) => [...configurationKeys.all(officeId), 'ai'] as const,
+  extraFields: (officeId: string) => [...configurationKeys.all(officeId), 'extra-fields'] as const,
+  requiredFields: (officeId: string) => [...configurationKeys.all(officeId), 'required-fields'] as const,
+  valueSets: (officeId: string) => [...configurationKeys.all(officeId), 'value-sets'] as const,
+  taskCategories: (officeId: string) => [...configurationKeys.all(officeId), 'task-categories'] as const,
+  collaboratorGroups: (officeId: string) => [...configurationKeys.all(officeId), 'collaborator-groups'] as const,
+  cargos: (officeId: string) => [...configurationKeys.all(officeId), 'cargos'] as const,
+  taskTemplates: (officeId: string) => [...configurationKeys.all(officeId), 'task-templates'] as const,
+  holidays: (officeId: string) => [...configurationKeys.all(officeId), 'holidays'] as const,
+};

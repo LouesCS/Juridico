@@ -1,0 +1,797 @@
+
+> @quilombo-dev/web@0.1.0 dev:mock
+> cross-env NEXT_PUBLIC_API_MOCKING=enabled next dev
+
+   ▲ Next.js 15.5.22
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.205.35:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 14.5s
+ ✓ Compiled /middleware in 2.7s
+ ✓ Compiled (116 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 7.9s (1563 modules)
+ GET /login?next=%2Fmovimentacoes-extrajudiciais 200 in 10580ms
+ ○ Compiling / ...
+ ✓ Compiled / in 7.4s (2110 modules)
+ GET / 200 in 8025ms
+ ○ Compiling /clientes ...
+ ✓ Compiled /clientes in 4.9s (2363 modules)
+ GET /clientes 200 in 5400ms
+ ○ Compiling /movimentacoes-extrajudiciais ...
+ ✓ Compiled /movimentacoes-extrajudiciais in 1429ms (2337 modules)
+ GET /movimentacoes-extrajudiciais 200 in 1828ms
+ GET /movimentacoes-extrajudiciais 200 in 991ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1227ms (2338 modules)
+ GET /api/v1/me 404 in 2131ms
+ ✓ Compiled /login in 397ms (1260 modules)
+ GET /login?next=%2F 200 in 699ms
+ ○ Compiling /api/demo/login ...
+ ✓ Compiled /api/demo/login in 1335ms (2360 modules)
+ POST /api/demo/login 200 in 1641ms
+ ○ Compiling / ...
+ ✓ Compiled / in 753ms (1318 modules)
+ GET / 200 in 967ms
+ GET /movimentacoes-extrajudiciais 200 in 78ms
+ ○ Compiling /processos-extrajudiciais ...
+ ✓ Compiled /processos-extrajudiciais in 2.9s (2288 modules)
+ GET /processos-extrajudiciais 200 in 3364ms
+ GET /movimentacoes-extrajudiciais 200 in 152ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1125ms (1068 modules)
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&pastaJuridicaId=&limit=20 404 in 2083ms
+ GET /api/v1/me 404 in 458ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&pastaJuridicaId=&limit=20 404 in 455ms
+ ✓ Compiled in 4.8s (1102 modules)
+ GET /movimentacoes-extrajudiciais 200 in 260ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&pastaJuridicaId=&limit=20 404 in 299ms
+ GET /api/v1/me 404 in 297ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&pastaJuridicaId=&limit=20 404 in 420ms
+ GET /api/v1/me 404 in 413ms
+ ✓ Compiled in 4.7s (2179 modules)
+ ✓ Compiled in 1ms (1075 modules)
+ ✓ Compiled in 1ms (1075 modules)
+ ✓ Compiled in 1ms (1075 modules)
+ GET /api/v1/me 404 in 5315ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&pastaJuridicaId=&clientePastaId=&encarregadoPastaId=&parteContrariaPastaId=&processoId=&limit=20 404 in 5312ms
+ GET /movimentacoes-extrajudiciais 200 in 4321ms
+ ✓ Compiled in 2.5s (2179 modules)
+ ✓ Compiled in 1ms (1075 modules)
+ ✓ Compiled in 1ms (1075 modules)
+ ✓ Compiled in 1ms (1075 modules)
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&pastaJuridicaId=&clientePastaId=&encarregadoPastaId=&parteContrariaPastaId=&processoId=&limit=20 404 in 3139ms
+ GET /movimentacoes-extrajudiciais 200 in 3469ms
+ ✓ Compiled in 2s (2179 modules)
+ ✓ Compiled in 0ms (1075 modules)
+ ✓ Compiled in 0ms (1075 modules)
+ ✓ Compiled in 0ms (1075 modules)
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&pastaJuridicaId=&clientePastaId=&encarregadoPastaId=&parteContrariaPastaId=&processoId=&limit=20 404 in 2880ms
+ GET /movimentacoes-extrajudiciais 200 in 3437ms
+ ✓ Compiled in 2.4s (2179 modules)
+ ✓ Compiled in 1ms (1075 modules)
+ ✓ Compiled in 1ms (1075 modules)
+ ✓ Compiled in 1ms (1075 modules)
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&pastaJuridicaId=&clientePastaId=&encarregadoPastaId=&parteContrariaPastaId=&processoId=&limit=20 404 in 3514ms
+ GET /movimentacoes-extrajudiciais 200 in 3776ms
+ ✓ Compiled in 1621ms (2179 modules)
+ ✓ Compiled in 1ms (1075 modules)
+ ✓ Compiled in 2ms (1075 modules)
+ ✓ Compiled in 1ms (1075 modules)
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 3042ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&pastaJuridicaId=&clientePastaId=&encarregadoPastaId=&parteContrariaPastaId=&processoId=&limit=20 404 in 3048ms
+ GET /movimentacoes-extrajudiciais 200 in 3483ms
+ ✓ Compiled in 1526ms (2179 modules)
+ ✓ Compiled in 1ms (1075 modules)
+ ✓ Compiled in 0ms (1075 modules)
+ ✓ Compiled in 0ms (1075 modules)
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 2779ms
+ GET /movimentacoes-extrajudiciais 200 in 3237ms
+ ✓ Compiled in 2.8s (2179 modules)
+ GET /movimentacoes-extrajudiciais 200 in 774ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 832ms
+ ✓ Compiled in 4.6s (2179 modules)
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 3160ms
+ GET /movimentacoes-extrajudiciais 200 in 198ms
+ ✓ Compiled in 1112ms (1104 modules)
+ ✓ Compiled in 943ms (1104 modules)
+ GET /movimentacoes-extrajudiciais 200 in 513ms
+ GET /movimentacoes-extrajudiciais 200 in 117ms
+ ✓ Compiled in 751ms (1104 modules)
+ GET /movimentacoes-extrajudiciais 200 in 121ms
+ GET /login?next=%2Fmovimentacoes-extrajudiciais 200 in 384ms
+ ○ Compiling /api/demo/login ...
+ ✓ Compiled /api/demo/login in 1914ms (1091 modules)
+ POST /api/demo/login 200 in 2270ms
+ GET /movimentacoes-extrajudiciais 200 in 298ms
+ GET /login?next=%2Fmovimentacoes-extrajudiciais 200 in 629ms
+ POST /api/demo/login 200 in 113ms
+ GET /movimentacoes-extrajudiciais 200 in 170ms
+ ✓ Compiled in 2.6s (2195 modules)
+ GET /movimentacoes-extrajudiciais 200 in 490ms
+ GET /login?next=%2Fmovimentacoes-extrajudiciais 200 in 622ms
+ POST /api/demo/login 200 in 120ms
+ GET /movimentacoes-extrajudiciais 200 in 157ms
+ ✓ Compiled in 1557ms (2195 modules)
+ GET /movimentacoes-extrajudiciais 200 in 321ms
+ ✓ Compiled in 1380ms (2195 modules)
+ GET /movimentacoes-extrajudiciais 200 in 265ms
+ GET /login?next=%2Fmovimentacoes-extrajudiciais 200 in 479ms
+ POST /api/demo/login 200 in 109ms
+ GET /movimentacoes-extrajudiciais 200 in 167ms
+ GET /login?next=%2Fmovimentacoes-extrajudiciais 200 in 348ms
+ POST /api/demo/login 200 in 79ms
+ GET /movimentacoes-extrajudiciais 200 in 137ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.1s (1075 modules)
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 3508ms
+ GET /api/v1/me 404 in 3504ms
+ GET /movimentacoes-extrajudiciais 200 in 551ms
+ GET /api/v1/me 404 in 211ms
+ ○ Compiling /configuracoes-captura ...
+ ✓ Compiled /configuracoes-captura in 6s (2201 modules)
+ GET /configuracoes-captura 200 in 6968ms
+ ✓ Compiled in 1313ms (1112 modules)
+ GET /configuracoes-captura 200 in 548ms
+ GET /configuracoes-captura 200 in 161ms
+ GET /movimentacoes-extrajudiciais 200 in 165ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1323ms (1090 modules)
+ GET /api/v1/me 404 in 2289ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 2287ms
+ GET /api/v1/me 404 in 183ms
+ GET /movimentacoes-extrajudiciais 200 in 1124ms
+ GET /api/v1/me 404 in 189ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 192ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 193ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 336ms
+ GET /api/v1/me 404 in 344ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 366ms
+ GET /api/v1/me 404 in 362ms
+ GET /api/v1/me 404 in 309ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 314ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 299ms
+ GET /api/v1/me 404 in 305ms
+ GET /api/v1/me 404 in 150ms
+ GET /api/v1/me 404 in 153ms
+ GET /api/v1/me 404 in 316ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 328ms
+ GET /api/v1/me 404 in 260ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 270ms
+ GET /api/v1/me 404 in 153ms
+ GET /api/v1/me 404 in 298ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 298ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 302ms
+ GET /api/v1/me 404 in 302ms
+ GET /api/v1/me 404 in 403ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 412ms
+ GET /movimentacoes-extrajudiciais 200 in 542ms
+ GET /api/v1/me 404 in 190ms
+ GET /configuracoes-captura 200 in 197ms
+ GET /movimentacoes-extrajudiciais 200 in 149ms
+ ✓ Compiled in 5.8s (2201 modules)
+ GET /movimentacoes-extrajudiciais 200 in 727ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 870ms (1090 modules)
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 1925ms
+ ✓ Compiled in 1188ms (2202 modules)
+ GET /movimentacoes-extrajudiciais 200 in 2255ms
+ GET /api/v1/me 404 in 388ms
+ ✓ Compiled in 3.5s (2318 modules)
+ GET /movimentacoes-extrajudiciais 200 in 2712ms
+ GET /movimentacoes-extrajudiciais 200 in 154ms
+ ✓ Compiled in 1331ms (1112 modules)
+ GET /movimentacoes-extrajudiciais 200 in 147ms
+ ✓ Compiled in 2.7s (2201 modules)
+ GET /movimentacoes-extrajudiciais 200 in 345ms
+ ✓ Compiled in 846ms (1112 modules)
+ ✓ Compiled in 1009ms (1112 modules)
+ GET /movimentacoes-extrajudiciais 200 in 566ms
+ GET /movimentacoes-extrajudiciais 200 in 212ms
+ ✓ Compiled in 4.8s (2201 modules)
+ GET /movimentacoes-extrajudiciais 200 in 694ms
+ ✓ Compiled in 1445ms (1112 modules)
+ GET /movimentacoes-extrajudiciais 200 in 265ms
+ GET /login?next=%2Fmovimentacoes-extrajudiciais 200 in 301ms
+ ○ Compiling /api/demo/login ...
+ ✓ Compiled /api/demo/login in 805ms (1106 modules)
+ POST /api/demo/login 200 in 954ms
+ GET /movimentacoes-extrajudiciais 200 in 139ms
+ ○ Compiling /movimentacoes-extrajudiciais/[id] ...
+ ✓ Compiled /movimentacoes-extrajudiciais/[id] in 4.3s (2288 modules)
+ GET /movimentacoes-extrajudiciais 200 in 223ms
+ GET /movimentacoes-extrajudiciais/extra-1 200 in 6193ms
+ GET /movimentacoes-extrajudiciais/extra-1 200 in 118ms
+ GET /login?next=%2Fmovimentacoes-extrajudiciais 200 in 652ms
+ POST /api/demo/login 200 in 62ms
+ GET /movimentacoes-extrajudiciais 200 in 52ms
+ GET /movimentacoes-extrajudiciais/extra-1 200 in 179ms
+ ✓ Compiled in 844ms (2288 modules)
+ GET /movimentacoes-extrajudiciais 200 in 156ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.9s (1090 modules)
+ GET /api/v1/me 404 in 5094ms
+ GET /movimentacoes-extrajudiciais 200 in 3876ms
+ GET /api/v1/me 404 in 167ms
+ ○ Compiling /movimentacoes-extrajudiciais/[id] ...
+ ✓ Compiled /movimentacoes-extrajudiciais/[id] in 943ms (1157 modules)
+ GET /movimentacoes-extrajudiciais/extra-1 200 in 1536ms
+ ✓ Compiled in 2.2s (1115 modules)
+ GET /movimentacoes-extrajudiciais 200 in 383ms
+ ✓ Compiled /_not-found in 4.8s (2271 modules)
+ ✓ Compiled in 2ms (1157 modules)
+ GET /api/v1/me 404 in 5096ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 5104ms
+ GET /movimentacoes-extrajudiciais 200 in 4384ms
+ ✓ Compiled in 7.3s (2274 modules)
+ ✓ Compiled in 1ms (1158 modules)
+ ✓ Compiled in 1ms (1158 modules)
+ ✓ Compiled in 1ms (1158 modules)
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 9510ms
+ GET /movimentacoes-extrajudiciais 200 in 7099ms
+ ✓ Compiled in 1302ms (1116 modules)
+ GET /movimentacoes-extrajudiciais 200 in 181ms
+ ✓ Compiled in 17.5s (2273 modules)
+ GET /movimentacoes-extrajudiciais 200 in 648ms
+ ✓ Compiled in 6.6s (2273 modules)
+ GET /movimentacoes-extrajudiciais 200 in 537ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.2s (1158 modules)
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 3522ms
+ GET /api/v1/me 404 in 3516ms
+ ✓ Compiled in 8.4s (2273 modules)
+ GET /movimentacoes-extrajudiciais 200 in 1178ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1603ms (1158 modules)
+ GET /api/v1/me 404 in 3187ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 3213ms
+ ✓ Compiled in 1412ms (1116 modules)
+ ✓ Compiled in 1232ms (1116 modules)
+ GET /movimentacoes-extrajudiciais 200 in 739ms
+ GET /movimentacoes-extrajudiciais 200 in 154ms
+ ✓ Compiled in 2.6s (2273 modules)
+ GET /movimentacoes-extrajudiciais 200 in 217ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 10.1s (2271 modules)
+ ✓ Compiled in 1ms (1156 modules)
+ GET /api/v1/me 404 in 6967ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 6961ms
+ GET /movimentacoes-extrajudiciais 200 in 4148ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 395ms
+ GET /api/v1/me 404 in 407ms
+ ✓ Compiled in 2.6s (2272 modules)
+ GET /api/v1/me 404 in 1133ms
+ GET /movimentacoes-extrajudiciais 200 in 1233ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 517ms
+ GET /movimentacoes-extrajudiciais 200 in 530ms
+ GET /movimentacoes-extrajudiciais 200 in 1080ms
+ GET /api/v1/me 404 in 691ms
+ ✓ Compiled in 4.1s (2272 modules)
+ GET /movimentacoes-extrajudiciais 200 in 821ms
+ ✓ Compiled in 935ms (1116 modules)
+ GET /movimentacoes-extrajudiciais 200 in 96ms
+ ✓ Compiled in 2.1s (2271 modules)
+ GET /movimentacoes-extrajudiciais 200 in 1110ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 661ms (1156 modules)
+ GET /api/v1/me 404 in 1096ms
+ ✓ Compiled in 892ms (1116 modules)
+ GET /movimentacoes-extrajudiciais 200 in 105ms
+ GET /api/v1/me 404 in 204ms
+ GET /api/v1/me 404 in 186ms
+ ✓ Compiled in 3.3s (2271 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.3s (1156 modules)
+ GET /api/v1/me 404 in 3306ms
+ GET /movimentacoes-extrajudiciais 200 in 1820ms
+ GET /api/v1/me 404 in 194ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 192ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 315ms
+ GET /api/v1/me 404 in 339ms
+ GET /api/v1/me 404 in 310ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 323ms
+ GET /api/v1/me 404 in 352ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 378ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 357ms
+ GET /api/v1/me 404 in 381ms
+ ✓ Compiled in 3.2s (2271 modules)
+ GET /movimentacoes-extrajudiciais 200 in 178ms
+ ✓ Compiled in 848ms (1116 modules)
+ GET /movimentacoes-extrajudiciais 200 in 82ms
+ ✓ Compiled in 1349ms (1116 modules)
+ GET /movimentacoes-extrajudiciais 200 in 60ms
+ ✓ Compiled in 7.9s (2271 modules)
+ GET /movimentacoes-extrajudiciais 200 in 613ms
+ ✓ Compiled in 2.3s (1116 modules)
+ ✓ Compiled in 1437ms (1116 modules)
+ GET /movimentacoes-extrajudiciais 200 in 584ms
+ GET /movimentacoes-extrajudiciais 200 in 168ms
+ GET /movimentacoes-extrajudiciais 200 in 617ms
+ ✓ Compiled in 3.5s (2387 modules)
+ GET /movimentacoes-extrajudiciais 200 in 308ms
+ ✓ Compiled in 2.8s (2271 modules)
+ GET /movimentacoes-extrajudiciais 200 in 172ms
+ ✓ Compiled in 2.3s (1116 modules)
+ ✓ Compiled in 1282ms (1116 modules)
+ GET /movimentacoes-extrajudiciais 200 in 718ms
+ GET /movimentacoes-extrajudiciais 200 in 147ms
+ ✓ Compiled in 4.8s (2271 modules)
+ GET /movimentacoes-extrajudiciais 200 in 214ms
+ ✓ Compiled in 308ms (1116 modules)
+ GET /movimentacoes-extrajudiciais 200 in 54ms
+ ✓ Compiled in 545ms (1116 modules)
+ GET /movimentacoes-extrajudiciais 200 in 94ms
+ ✓ Compiled in 3.5s (2271 modules)
+ GET /movimentacoes-extrajudiciais 200 in 295ms
+ GET /login?next=%2F 200 in 284ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 6.2s (1156 modules)
+ GET /api/v1/me 404 in 9150ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 9185ms
+ GET /movimentacoes-extrajudiciais 200 in 6072ms
+ GET /api/v1/me 404 in 164ms
+ ○ Compiling /movimentacoes-judiciais ...
+ ✓ Compiled /movimentacoes-judiciais in 11.8s (2272 modules)
+ GET /movimentacoes-judiciais 200 in 12392ms
+ GET /api/v1/me 404 in 1009ms
+ GET /api/v1/judicial-movements?sort=-dataMovimento&page=1&limit=20 404 in 1002ms
+ GET /api/v1/me 404 in 281ms
+ GET /api/v1/me 404 in 182ms
+ GET /movimentacoes-judiciais 200 in 1164ms
+ GET /api/v1/me 404 in 213ms
+ GET /movimentacoes-extrajudiciais 200 in 196ms
+ GET /movimentacoes-judiciais 200 in 150ms
+ GET /api/v1/judicial-movements?sort=-dataMovimento&page=1&limit=20 404 in 162ms
+ ✓ Compiled in 3.1s (2277 modules)
+ GET /movimentacoes-judiciais 200 in 256ms
+ ✓ Compiled in 2.2s (2277 modules)
+ GET /movimentacoes-judiciais 200 in 149ms
+ ✓ Compiled in 1473ms (2277 modules)
+ GET /movimentacoes-judiciais 200 in 220ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 570ms (1158 modules)
+ GET /api/v1/me 404 in 1038ms
+ GET /api/v1/judicial-movements?sort=-dataMovimento&page=1&limit=20 404 in 1051ms
+ ✓ Compiled in 523ms (1120 modules)
+ GET /movimentacoes-judiciais 200 in 112ms
+ ✓ Compiled in 1538ms (2283 modules)
+ GET /movimentacoes-judiciais 200 in 153ms
+ ✓ Compiled in 3.4s (2284 modules)
+ GET /movimentacoes-judiciais 200 in 226ms
+ ✓ Compiled in 391ms (1123 modules)
+ GET /movimentacoes-judiciais 200 in 65ms
+ ✓ Compiled in 369ms (1123 modules)
+ GET /movimentacoes-judiciais 200 in 77ms
+ ✓ Compiled in 394ms (1123 modules)
+ GET /movimentacoes-judiciais 200 in 60ms
+ GET /login?next=%2Fmovimentacoes-judiciais 200 in 346ms
+ GET /login 200 in 145ms
+ ○ Compiling /api/demo/login ...
+ ✓ Compiled /api/demo/login in 2.7s (1178 modules)
+ POST /api/demo/login 200 in 2955ms
+ ○ Compiling / ...
+ ✓ Compiled / in 5.2s (1233 modules)
+ GET / 200 in 5412ms
+ GET /movimentacoes-judiciais 200 in 640ms
+ ○ Compiling /movimentacoes-judiciais/[id] ...
+ ✓ Compiled /movimentacoes-judiciais/[id] in 4.9s (2352 modules)
+ GET /movimentacoes-judiciais/movement-1 200 in 7043ms
+ ○ Compiling /movimentacoes-extrajudiciais ...
+ ✓ Compiled /movimentacoes-extrajudiciais in 3.7s (1248 modules)
+ GET /movimentacoes-extrajudiciais 200 in 4176ms
+ GET /movimentacoes-extrajudiciais/extra-1 200 in 305ms
+ ○ Compiling /pastas/[id] ...
+ ✓ Compiled /pastas/[id] in 8.4s (2385 modules)
+ GET /pastas/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee 200 in 10259ms
+ GET /login 200 in 163ms
+ POST /api/demo/login 200 in 54ms
+ GET / 200 in 90ms
+ GET /movimentacoes-judiciais 200 in 326ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.2s (1265 modules)
+ GET /api/v1/me 404 in 2620ms
+ GET /movimentacoes-judiciais/movement-1 200 in 559ms
+ GET /movimentacoes-extrajudiciais 200 in 252ms
+ GET /api/v1/me 404 in 76ms
+ GET /movimentacoes-extrajudiciais/extra-1 200 in 386ms
+ GET /api/v1/me 404 in 165ms
+ GET /api/v1/extrajudicial-movements/extra-1 404 in 164ms
+ GET /pastas/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee 200 in 340ms
+ GET /api/v1/me 404 in 275ms
+ GET /api/v1/legal-folders/options 404 in 288ms
+ GET /api/v1/legal-folders/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee 404 in 291ms
+ ✓ Compiled in 2.7s (2298 modules)
+ GET /movimentacoes-judiciais 200 in 440ms
+ ✓ Compiled in 4.8s (2298 modules)
+ GET /movimentacoes-judiciais 200 in 270ms
+ ✓ Compiled in 1755ms (1135 modules)
+ GET /movimentacoes-judiciais 200 in 142ms
+ ✓ Compiled in 540ms (1135 modules)
+ GET /movimentacoes-judiciais 200 in 112ms
+ ✓ Compiled in 452ms (1135 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1627ms (1164 modules)
+ GET /movimentacoes-judiciais 404 in 2026ms
+ GET /movimentacoes-judiciais 200 in 830ms
+ ✓ Compiled in 1569ms (1135 modules)
+ ✓ Compiled in 611ms (1135 modules)
+ ✓ Compiled in 497ms (1135 modules)
+ ✓ Compiled in 515ms (1135 modules)
+ ✓ Compiled in 547ms (1135 modules)
+ ✓ Compiled in 658ms (1135 modules)
+ ✓ Compiled in 762ms (1135 modules)
+ ✓ Compiled in 620ms (1135 modules)
+ ✓ Compiled in 590ms (1135 modules)
+ ✓ Compiled in 1778ms (1135 modules)
+ ✓ Compiled in 646ms (1135 modules)
+ ✓ Compiled in 767ms (1135 modules)
+ ✓ Compiled in 481ms (1135 modules)
+ ✓ Compiled in 542ms (1135 modules)
+ ✓ Compiled in 640ms (1135 modules)
+ ✓ Compiled in 517ms (1135 modules)
+ ✓ Compiled in 586ms (1135 modules)
+ ✓ Compiled in 868ms (1135 modules)
+ ✓ Compiled in 1094ms (1135 modules)
+ ✓ Compiled in 659ms (1135 modules)
+ ✓ Compiled in 612ms (1135 modules)
+ ✓ Compiled in 587ms (1135 modules)
+ ✓ Compiled in 573ms (1135 modules)
+ ✓ Compiled in 814ms (1135 modules)
+ ✓ Compiled in 848ms (1135 modules)
+ ✓ Compiled in 759ms (1135 modules)
+ ✓ Compiled in 630ms (1135 modules)
+ ✓ Compiled in 708ms (1135 modules)
+ ✓ Compiled in 921ms (1135 modules)
+ ✓ Compiled in 677ms (1135 modules)
+ ✓ Compiled in 723ms (1135 modules)
+ ✓ Compiled in 715ms (1135 modules)
+ ✓ Compiled in 720ms (1135 modules)
+ ✓ Compiled in 715ms (1135 modules)
+ ✓ Compiled in 637ms (1135 modules)
+ ✓ Compiled in 1576ms (1135 modules)
+ ✓ Compiled in 581ms (1135 modules)
+ ✓ Compiled in 459ms (1135 modules)
+ ✓ Compiled in 506ms (1135 modules)
+ ✓ Compiled in 460ms (1135 modules)
+ ✓ Compiled in 412ms (1135 modules)
+ ✓ Compiled in 478ms (1135 modules)
+ ✓ Compiled in 452ms (1135 modules)
+ ✓ Compiled in 438ms (1135 modules)
+ ✓ Compiled in 492ms (1135 modules)
+ ✓ Compiled in 560ms (1135 modules)
+ ✓ Compiled in 481ms (1135 modules)
+ ✓ Compiled in 423ms (1135 modules)
+ ✓ Compiled in 442ms (1135 modules)
+ ✓ Compiled in 457ms (1135 modules)
+ ✓ Compiled in 443ms (1135 modules)
+ ✓ Compiled in 469ms (1135 modules)
+ ✓ Compiled in 464ms (1135 modules)
+ ✓ Compiled in 573ms (1135 modules)
+ ✓ Compiled in 1058ms (1135 modules)
+ ✓ Compiled in 495ms (1135 modules)
+ ✓ Compiled in 487ms (1135 modules)
+ ✓ Compiled in 490ms (1135 modules)
+ ✓ Compiled in 461ms (1135 modules)
+ ✓ Compiled in 431ms (1135 modules)
+ ✓ Compiled in 434ms (1135 modules)
+ ✓ Compiled in 448ms (1135 modules)
+ ✓ Compiled in 490ms (1135 modules)
+ ✓ Compiled in 526ms (1135 modules)
+ ✓ Compiled in 586ms (1135 modules)
+ ✓ Compiled in 588ms (1135 modules)
+ ✓ Compiled in 642ms (1135 modules)
+ ✓ Compiled in 485ms (1135 modules)
+ ✓ Compiled in 464ms (1135 modules)
+ ✓ Compiled in 578ms (1135 modules)
+ ✓ Compiled in 485ms (1135 modules)
+ ✓ Compiled in 476ms (1135 modules)
+ ✓ Compiled in 671ms (1135 modules)
+ ✓ Compiled in 965ms (1135 modules)
+ ✓ Compiled in 501ms (1135 modules)
+ ✓ Compiled in 503ms (1135 modules)
+ ✓ Compiled in 496ms (1135 modules)
+ ✓ Compiled in 555ms (1135 modules)
+ ✓ Compiled in 536ms (1135 modules)
+ ✓ Compiled in 585ms (1135 modules)
+ ✓ Compiled in 480ms (1135 modules)
+ ✓ Compiled in 561ms (1135 modules)
+ ✓ Compiled in 584ms (1135 modules)
+ ✓ Compiled in 470ms (1135 modules)
+ ✓ Compiled in 507ms (1135 modules)
+ ✓ Compiled in 445ms (1135 modules)
+ ✓ Compiled in 451ms (1135 modules)
+ ✓ Compiled in 443ms (1135 modules)
+ ✓ Compiled in 423ms (1135 modules)
+ ✓ Compiled in 451ms (1135 modules)
+ ✓ Compiled in 467ms (1135 modules)
+ ✓ Compiled in 721ms (1135 modules)
+ ✓ Compiled in 1001ms (1135 modules)
+ ✓ Compiled in 725ms (1135 modules)
+ ✓ Compiled in 550ms (1135 modules)
+ ✓ Compiled in 667ms (1135 modules)
+ ✓ Compiled in 508ms (1135 modules)
+ ✓ Compiled in 509ms (1135 modules)
+ ✓ Compiled in 563ms (1135 modules)
+ ✓ Compiled in 533ms (1135 modules)
+ ✓ Compiled in 466ms (1135 modules)
+ ✓ Compiled in 466ms (1135 modules)
+ ✓ Compiled in 481ms (1135 modules)
+ ✓ Compiled in 528ms (1135 modules)
+ ✓ Compiled in 496ms (1135 modules)
+ ✓ Compiled in 487ms (1135 modules)
+ ✓ Compiled in 486ms (1135 modules)
+ ✓ Compiled in 445ms (1135 modules)
+ ✓ Compiled in 431ms (1135 modules)
+ ✓ Compiled in 414ms (1135 modules)
+ ✓ Compiled in 661ms (1135 modules)
+ ✓ Compiled in 870ms (1135 modules)
+ ✓ Compiled in 679ms (1135 modules)
+ ✓ Compiled in 471ms (1135 modules)
+ ✓ Compiled in 465ms (1135 modules)
+ ✓ Compiled in 437ms (1135 modules)
+ ✓ Compiled in 474ms (1135 modules)
+ ✓ Compiled in 449ms (1135 modules)
+ ✓ Compiled in 480ms (1135 modules)
+ ✓ Compiled in 464ms (1135 modules)
+ ✓ Compiled in 516ms (1135 modules)
+ ✓ Compiled in 444ms (1135 modules)
+ ✓ Compiled in 462ms (1135 modules)
+ ✓ Compiled in 693ms (1135 modules)
+ ✓ Compiled in 573ms (1135 modules)
+ ✓ Compiled in 575ms (1135 modules)
+ ✓ Compiled in 615ms (1135 modules)
+ ✓ Compiled in 543ms (1135 modules)
+ ✓ Compiled in 567ms (1135 modules)
+ ✓ Compiled in 727ms (1135 modules)
+ ✓ Compiled in 1368ms (1135 modules)
+ ✓ Compiled in 632ms (1135 modules)
+ ✓ Compiled in 541ms (1135 modules)
+ ✓ Compiled in 555ms (1135 modules)
+ ✓ Compiled in 552ms (1135 modules)
+ ✓ Compiled in 564ms (1135 modules)
+ ✓ Compiled in 603ms (1135 modules)
+ ✓ Compiled in 537ms (1135 modules)
+ ✓ Compiled in 513ms (1135 modules)
+ ✓ Compiled in 535ms (1135 modules)
+ ✓ Compiled in 541ms (1135 modules)
+ ✓ Compiled in 558ms (1135 modules)
+ ✓ Compiled in 706ms (1135 modules)
+ ✓ Compiled in 628ms (1135 modules)
+ ✓ Compiled in 606ms (1135 modules)
+ ✓ Compiled in 663ms (1135 modules)
+ ✓ Compiled in 604ms (1135 modules)
+ ✓ Compiled in 512ms (1135 modules)
+ ✓ Compiled in 980ms (1135 modules)
+ ✓ Compiled in 1114ms (1135 modules)
+ ✓ Compiled in 523ms (1135 modules)
+ ✓ Compiled in 475ms (1135 modules)
+ ✓ Compiled in 523ms (1135 modules)
+ ✓ Compiled in 665ms (1135 modules)
+ ✓ Compiled in 690ms (1135 modules)
+ ✓ Compiled in 598ms (1135 modules)
+ ✓ Compiled in 596ms (1135 modules)
+ ✓ Compiled in 564ms (1135 modules)
+ ✓ Compiled in 509ms (1135 modules)
+ ✓ Compiled in 482ms (1135 modules)
+ ✓ Compiled in 547ms (1135 modules)
+ ✓ Compiled in 823ms (1135 modules)
+ ✓ Compiled in 846ms (1135 modules)
+ ✓ Compiled in 644ms (1135 modules)
+ ✓ Compiled in 865ms (1135 modules)
+ ✓ Compiled in 1076ms (1135 modules)
+ ✓ Compiled in 995ms (1135 modules)
+ ✓ Compiled in 1158ms (1135 modules)
+ ✓ Compiled in 1868ms (1135 modules)
+ ✓ Compiled in 1042ms (1135 modules)
+ ✓ Compiled in 999ms (1135 modules)
+ ✓ Compiled in 935ms (1135 modules)
+ ✓ Compiled in 940ms (1135 modules)
+ ✓ Compiled in 980ms (1135 modules)
+ ✓ Compiled in 945ms (1135 modules)
+ ✓ Compiled in 932ms (1135 modules)
+ ✓ Compiled in 904ms (1135 modules)
+ ✓ Compiled in 957ms (1135 modules)
+ ✓ Compiled in 835ms (1135 modules)
+ ✓ Compiled in 918ms (1135 modules)
+ ✓ Compiled in 856ms (1135 modules)
+ ✓ Compiled in 984ms (1135 modules)
+ ✓ Compiled in 908ms (1135 modules)
+ ✓ Compiled in 927ms (1135 modules)
+ ✓ Compiled in 839ms (1135 modules)
+ ✓ Compiled in 778ms (1135 modules)
+ ✓ Compiled in 1042ms (1135 modules)
+ ✓ Compiled in 1513ms (1135 modules)
+ ✓ Compiled in 980ms (1135 modules)
+ ✓ Compiled in 1048ms (1135 modules)
+ ✓ Compiled in 946ms (1135 modules)
+ ✓ Compiled in 1094ms (1135 modules)
+ ✓ Compiled in 1104ms (1135 modules)
+ ✓ Compiled in 987ms (1135 modules)
+ ✓ Compiled in 956ms (1135 modules)
+ ✓ Compiled in 995ms (1135 modules)
+ ✓ Compiled in 974ms (1135 modules)
+ ✓ Compiled in 1215ms (1135 modules)
+ ✓ Compiled in 1921ms (1135 modules)
+ ✓ Compiled in 1008ms (1135 modules)
+ ✓ Compiled in 1011ms (1135 modules)
+ ✓ Compiled in 1003ms (1135 modules)
+ ✓ Compiled in 955ms (1135 modules)
+ ✓ Compiled in 933ms (1135 modules)
+ ✓ Compiled in 900ms (1135 modules)
+ ✓ Compiled in 870ms (1135 modules)
+ ✓ Compiled in 849ms (1135 modules)
+ ✓ Compiled in 856ms (1135 modules)
+ ✓ Compiled in 863ms (1135 modules)
+ ✓ Compiled in 856ms (1135 modules)
+ ✓ Compiled in 876ms (1135 modules)
+ ✓ Compiled in 946ms (1135 modules)
+ ✓ Compiled in 927ms (1135 modules)
+ ✓ Compiled in 904ms (1135 modules)
+ ✓ Compiled in 872ms (1135 modules)
+ ✓ Compiled in 840ms (1135 modules)
+ ✓ Compiled in 1074ms (1135 modules)
+ ✓ Compiled in 1806ms (1135 modules)
+ ✓ Compiled in 1055ms (1135 modules)
+ ✓ Compiled in 937ms (1135 modules)
+ ✓ Compiled in 1029ms (1135 modules)
+ ✓ Compiled in 932ms (1135 modules)
+ ✓ Compiled in 818ms (1135 modules)
+ ✓ Compiled in 932ms (1135 modules)
+ ✓ Compiled in 928ms (1135 modules)
+ ✓ Compiled in 955ms (1135 modules)
+ ✓ Compiled in 939ms (1135 modules)
+ ✓ Compiled in 944ms (1135 modules)
+ ✓ Compiled in 2.4s (1135 modules)
+ ✓ Compiled in 995ms (1135 modules)
+ ✓ Compiled in 967ms (1135 modules)
+ ✓ Compiled in 920ms (1135 modules)
+ ✓ Compiled in 904ms (1135 modules)
+ ✓ Compiled in 947ms (1135 modules)
+ ✓ Compiled in 937ms (1135 modules)
+ ✓ Compiled in 956ms (1135 modules)
+ ✓ Compiled in 900ms (1135 modules)
+ ✓ Compiled in 946ms (1135 modules)
+ ✓ Compiled in 914ms (1135 modules)
+ ✓ Compiled in 922ms (1135 modules)
+ ✓ Compiled in 924ms (1135 modules)
+ ✓ Compiled in 879ms (1135 modules)
+ ✓ Compiled in 910ms (1135 modules)
+ ✓ Compiled in 886ms (1135 modules)
+ ✓ Compiled in 958ms (1135 modules)
+ ✓ Compiled in 975ms (1135 modules)
+ ✓ Compiled in 1039ms (1135 modules)
+ ✓ Compiled in 1821ms (1135 modules)
+ ✓ Compiled in 1077ms (1135 modules)
+ ✓ Compiled in 1036ms (1135 modules)
+ ✓ Compiled in 1002ms (1135 modules)
+ ✓ Compiled in 980ms (1135 modules)
+ ✓ Compiled in 1111ms (1135 modules)
+ ✓ Compiled in 834ms (1135 modules)
+ ✓ Compiled in 818ms (1135 modules)
+ ✓ Compiled in 743ms (1135 modules)
+ ✓ Compiled in 819ms (1135 modules)
+ ✓ Compiled in 768ms (1135 modules)
+ ✓ Compiled in 806ms (1135 modules)
+ ✓ Compiled in 767ms (1135 modules)
+ ✓ Compiled in 833ms (1135 modules)
+ ✓ Compiled in 812ms (1135 modules)
+ ✓ Compiled in 894ms (1135 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 4.8s (2303 modules)
+ GET /login 200 in 7124ms
+ ✓ Compiled in 2.7s (1135 modules)
+ ✓ Compiled in 1055ms (1135 modules)
+ ✓ Compiled in 961ms (1135 modules)
+ ✓ Compiled in 941ms (1135 modules)
+ ✓ Compiled in 953ms (1135 modules)
+ ✓ Compiled in 948ms (1135 modules)
+ ✓ Compiled in 873ms (1135 modules)
+ ✓ Compiled in 928ms (1135 modules)
+ ✓ Compiled in 923ms (1135 modules)
+ ✓ Compiled in 945ms (1135 modules)
+ ✓ Compiled in 920ms (1135 modules)
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 8.9s (2650 modules)
+ GET /login?email=demo%40quilombodev.com&senha=Demo%40123 500 in 10029ms
+ ✓ Compiled in 4.2s (2650 modules)
+ ✓ Compiled in 1038ms (1288 modules)
+ ✓ Compiled in 951ms (1288 modules)
+ ✓ Compiled in 1245ms (1288 modules)
+ ✓ Compiled in 964ms (1288 modules)
+ ✓ Compiled in 1008ms (1288 modules)
+ ✓ Compiled in 2.4s (1288 modules)
+ ✓ Compiled in 1005ms (1288 modules)
+ ✓ Compiled in 971ms (1288 modules)
+ ✓ Compiled in 1016ms (1288 modules)
+ ✓ Compiled in 915ms (1288 modules)
+ ✓ Compiled in 969ms (1288 modules)
+ ✓ Compiled in 984ms (1288 modules)
+ ✓ Compiled in 1071ms (1288 modules)
+ ✓ Compiled in 955ms (1288 modules)
+ ✓ Compiled in 997ms (1288 modules)
+ ✓ Compiled in 888ms (1288 modules)
+ ✓ Compiled in 2.2s (1288 modules)
+ ✓ Compiled in 964ms (1288 modules)
+ ✓ Compiled in 865ms (1288 modules)
+ ✓ Compiled in 868ms (1288 modules)
+ ✓ Compiled in 946ms (1288 modules)
+ ✓ Compiled in 980ms (1288 modules)
+ ✓ Compiled in 955ms (1288 modules)
+ ✓ Compiled in 1062ms (1288 modules)
+ ✓ Compiled in 938ms (1288 modules)
+ ✓ Compiled in 892ms (1288 modules)
+ ✓ Compiled in 912ms (1288 modules)
+ ✓ Compiled in 1003ms (1288 modules)
+ ✓ Compiled in 991ms (1288 modules)
+ ✓ Compiled in 1003ms (1288 modules)
+ ✓ Compiled in 996ms (1288 modules)
+ ✓ Compiled in 998ms (1288 modules)
+ ✓ Compiled in 952ms (1288 modules)
+ ✓ Compiled in 929ms (1288 modules)
+ ✓ Compiled in 959ms (1288 modules)
+ ✓ Compiled in 2.5s (1288 modules)
+ ✓ Compiled in 1138ms (1288 modules)
+ ✓ Compiled in 1078ms (1288 modules)
+ ✓ Compiled in 1068ms (1288 modules)
+ ✓ Compiled in 1002ms (1288 modules)
+ ✓ Compiled in 1054ms (1288 modules)
+ ✓ Compiled in 1018ms (1288 modules)
+ ✓ Compiled in 1017ms (1288 modules)
+ ✓ Compiled in 1002ms (1288 modules)
+ ✓ Compiled in 935ms (1288 modules)
+ ✓ Compiled in 938ms (1288 modules)
+ ✓ Compiled in 1299ms (1288 modules)
+ ✓ Compiled in 1937ms (1288 modules)
+ ✓ Compiled in 1129ms (1288 modules)
+ ✓ Compiled in 1017ms (1288 modules)
+ ✓ Compiled in 1044ms (1288 modules)
+ ✓ Compiled in 959ms (1288 modules)
+ ✓ Compiled in 6.2s (1288 modules)
+ ✓ Compiled in 1017ms (1288 modules)
+ ✓ Compiled in 928ms (1288 modules)
+ ✓ Compiled in 909ms (1288 modules)
+ ✓ Compiled in 1051ms (1288 modules)
+ ✓ Compiled in 904ms (1288 modules)
+ ✓ Compiled in 902ms (1288 modules)
+ ✓ Compiled in 987ms (1287 modules)
+ ✓ Compiled in 1015ms (1287 modules)
+ ✓ Compiled in 937ms (1287 modules)
+ ✓ Compiled in 971ms (1287 modules)
+ ✓ Compiled in 1213ms (1287 modules)
+ ✓ Compiled in 1762ms (1287 modules)
+ ✓ Compiled in 1124ms (1287 modules)
+ ✓ Compiled in 956ms (1287 modules)
+ ✓ Compiled in 1039ms (1287 modules)
+ ✓ Compiled in 972ms (1287 modules)
+ ✓ Compiled in 1042ms (1287 modules)
+ ✓ Compiled in 1039ms (1287 modules)
+ ✓ Compiled in 1043ms (1287 modules)
+ ✓ Compiled in 987ms (1287 modules)
+ ✓ Compiled in 961ms (1287 modules)
+ ✓ Compiled in 971ms (1287 modules)
+ ✓ Compiled in 628ms (1287 modules)
+ ✓ Compiled in 1006ms (1287 modules)
+ ✓ Compiled in 524ms (1287 modules)
+ ✓ Compiled in 522ms (1287 modules)
+ ✓ Compiled in 587ms (1287 modules)
+ ✓ Compiled in 507ms (1287 modules)
+ ✓ Compiled in 550ms (1287 modules)
+ ✓ Compiled in 713ms (1287 modules)
+ ✓ Compiled in 976ms (1287 modules)
+ ✓ Compiled in 558ms (1287 modules)
+ ✓ Compiled in 786ms (1287 modules)
+ ✓ Compiled in 557ms (1287 modules)
+ ✓ Compiled in 580ms (1287 modules)
+ ✓ Compiled in 493ms (1287 modules)
+ ✓ Compiled in 495ms (1287 modules)
+ ✓ Compiled in 514ms (1287 modules)
+ ✓ Compiled in 461ms (1287 modules)
+ GET /login 200 in 677ms
+ ○ Compiling /api/demo/login ...
+ ✓ Compiled /api/demo/login in 2.4s (1272 modules)
+ POST /api/demo/login 200 in 2591ms
+ ○ Compiling / ...
+ ✓ Compiled / in 4.3s (1327 modules)
+[?25h

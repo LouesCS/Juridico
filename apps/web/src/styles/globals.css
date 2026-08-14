@@ -1,0 +1,526 @@
+@import 'tailwindcss';
+
+/**
+ * Tokens do Design System — reafirma docs/07-design-system.md e
+ * docs/ux/12-design-system.md, traduzidos para Tailwind CSS 4
+ * (docs/frontend/13-design-system.md §13.2). Nenhum valor é decidido
+ * aqui; só transcrito.
+ */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Source Serif 4', ui-serif, Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  --shadow-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-elevation-2: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-elevation-3: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --shadow-elevation-4: 0 8px 32px rgba(0, 0, 0, 0.14);
+
+  --color-brand-50: hsl(197 62% 96%);
+  --color-brand-100: hsl(197 62% 90%);
+  --color-brand-200: hsl(197 62% 80%);
+  --color-brand-300: hsl(197 62% 68%);
+  --color-brand-400: hsl(197 62% 55%);
+  --color-brand-500: hsl(197 62% 42%);
+  --color-brand-600: hsl(197 62% 34%);
+  --color-brand-700: hsl(197 62% 27%);
+  --color-brand-800: hsl(197 62% 20%);
+  --color-brand-900: hsl(197 62% 14%);
+  --color-brand-950: hsl(197 62% 8%);
+
+  --color-neutral-0: hsl(215 20% 100%);
+  --color-neutral-50: hsl(215 20% 98%);
+  --color-neutral-100: hsl(215 18% 95%);
+  --color-neutral-200: hsl(215 16% 90%);
+  --color-neutral-300: hsl(215 15% 80%);
+  --color-neutral-400: hsl(215 15% 64%);
+  --color-neutral-500: hsl(215 15% 48%);
+  --color-neutral-600: hsl(215 15% 36%);
+  --color-neutral-700: hsl(215 16% 26%);
+  --color-neutral-800: hsl(215 18% 17%);
+  --color-neutral-850: hsl(215 19% 13%);
+  --color-neutral-900: hsl(215 20% 10%);
+  --color-neutral-950: hsl(215 22% 6%);
+  --color-neutral-1000: hsl(215 25% 3%);
+
+  --color-success: hsl(142 65% 38%);
+  --color-success-foreground: hsl(0 0% 100%);
+  --color-success-subtle: hsl(142 60% 94%);
+  --color-warning: hsl(38 92% 45%);
+  --color-warning-foreground: hsl(0 0% 100%);
+  --color-warning-subtle: hsl(38 90% 94%);
+  --color-danger: hsl(4 74% 48%);
+  --color-danger-foreground: hsl(0 0% 100%);
+  --color-danger-subtle: hsl(4 70% 95%);
+  --color-info: hsl(210 80% 48%);
+  --color-info-foreground: hsl(0 0% 100%);
+  --color-info-subtle: hsl(210 75% 95%);
+
+  /* Exclusiva para conteúdo gerado por IA — docs/ux/12-design-system.md §12.5.
+     Nenhum outro contexto do produto pode usar esta cor. */
+  --color-ai: hsl(262 60% 50%);
+  --color-ai-foreground: hsl(0 0% 100%);
+  --color-ai-subtle: hsl(262 55% 95%);
+}
+
+/**
+ * Ponte entre as variáveis semânticas (que trocam de valor por tema, abaixo)
+ * e as utilities do Tailwind (`bg-primary`, `text-foreground`, `bg-ai-subtle`,
+ * ...) — padrão `@theme inline` recomendado pelo Tailwind 4 para tokens que
+ * mudam em runtime (claro/escuro), reafirma docs/frontend/13-design-system.md §13.2.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar-background: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-border: var(--sidebar-border);
+}
+
+@layer base {
+  :root {
+    --background: var(--color-neutral-0);
+    --foreground: var(--color-neutral-900);
+    --card: var(--color-neutral-0);
+    --card-foreground: var(--color-neutral-900);
+    --popover: var(--color-neutral-0);
+    --popover-foreground: var(--color-neutral-900);
+    --primary: var(--color-brand-500);
+    --primary-foreground: var(--color-neutral-0);
+    --secondary: var(--color-neutral-100);
+    --secondary-foreground: var(--color-neutral-900);
+    --muted: var(--color-neutral-100);
+    --muted-foreground: var(--color-neutral-500);
+    --accent: var(--color-brand-50);
+    --accent-foreground: var(--color-brand-700);
+    --destructive: var(--color-danger);
+    --destructive-foreground: var(--color-danger-foreground);
+    --border: var(--color-neutral-200);
+    --input: var(--color-neutral-200);
+    --ring: var(--color-brand-500);
+    --sidebar-background: var(--color-neutral-50);
+    --sidebar-foreground: var(--color-neutral-700);
+    --sidebar-accent: var(--color-brand-50);
+    --sidebar-border: var(--color-neutral-200);
+  }
+
+  :root[data-theme='dark'],
+  .dark {
+    --background: var(--color-neutral-950);
+    --foreground: var(--color-neutral-50);
+    --card: var(--color-neutral-900);
+    --card-foreground: var(--color-neutral-50);
+    --popover: var(--color-neutral-900);
+    --popover-foreground: var(--color-neutral-50);
+    --primary: var(--color-brand-400);
+    --primary-foreground: var(--color-neutral-950);
+    --secondary: var(--color-neutral-800);
+    --secondary-foreground: var(--color-neutral-50);
+    --muted: var(--color-neutral-850);
+    --muted-foreground: var(--color-neutral-400);
+    --accent: var(--color-neutral-800);
+    --accent-foreground: var(--color-brand-300);
+    --destructive: var(--color-danger);
+    --destructive-foreground: var(--color-danger-foreground);
+    --border: var(--color-neutral-800);
+    --input: var(--color-neutral-800);
+    --ring: var(--color-brand-400);
+    --sidebar-background: var(--color-neutral-900);
+    --sidebar-foreground: var(--color-neutral-300);
+    --sidebar-accent: var(--color-neutral-800);
+    --sidebar-border: var(--color-neutral-800);
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}
+
+/**
+ * Polimento visual (Prompt 6C — modo demo) — só CSS, nenhuma mudança de
+ * arquitetura ou de componente. `prefers-reduced-motion` respeitado via
+ * `motion-safe:` no uso (reafirma docs/frontend/24-accessibility.md).
+ */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@layer utilities {
+  .skeleton-shimmer {
+    background-image: linear-gradient(
+      90deg,
+      var(--color-neutral-200) 25%,
+      var(--color-neutral-100) 50%,
+      var(--color-neutral-200) 75%
+    );
+    background-size: 200% 100%;
+  }
+
+  :root[data-theme='dark'] .skeleton-shimmer,
+  .dark .skeleton-shimmer {
+    background-image: linear-gradient(
+      90deg,
+      var(--color-neutral-850) 25%,
+      var(--color-neutral-800) 50%,
+      var(--color-neutral-850) 75%
+    );
+  }
+}
+
+/**
+ * PROMPT 14.5 (UX Polish) — Scrollbar minimalista.
+ *
+ * Nenhuma barra de rolagem tradicional em nenhuma tela: largura/altura de
+ * 5px, cantos arredondados, cor neutra de baixa opacidade, invisível em
+ * repouso. `.scrollbar-fade` é a classe de base (hover revela); o atributo
+ * `data-scroll-active` (aplicado via JS por `ScrollArea`,
+ * components/data-display/scroll-area.tsx) estende a revelação durante o
+ * gesto de scroll/drag, não só no hover — usado pela Sidebar e pelo board
+ * do Kanban. Onde não há necessidade do comportamento "aparece durante o
+ * scroll" (tabelas, listas, diálogos com conteúdo longo), a classe sozinha
+ * já basta: aparece só no hover.
+ */
+@layer utilities {
+  .scrollbar-fade {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .scrollbar-fade::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  .scrollbar-fade::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-fade::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 9999px;
+    transition: background-color 200ms ease;
+  }
+
+  .scrollbar-fade:hover,
+  .scrollbar-fade[data-scroll-active] {
+    scrollbar-color: color-mix(in srgb, var(--color-neutral-500) 45%, transparent) transparent;
+  }
+
+  .scrollbar-fade:hover::-webkit-scrollbar-thumb,
+  .scrollbar-fade[data-scroll-active]::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--color-neutral-500) 45%, transparent);
+  }
+
+  :root[data-theme='dark'] .scrollbar-fade:hover,
+  :root[data-theme='dark'] .scrollbar-fade[data-scroll-active],
+  .dark .scrollbar-fade:hover,
+  .dark .scrollbar-fade[data-scroll-active] {
+    scrollbar-color: color-mix(in srgb, var(--color-neutral-400) 40%, transparent) transparent;
+  }
+
+  :root[data-theme='dark'] .scrollbar-fade:hover::-webkit-scrollbar-thumb,
+  :root[data-theme='dark'] .scrollbar-fade[data-scroll-active]::-webkit-scrollbar-thumb,
+  .dark .scrollbar-fade:hover::-webkit-scrollbar-thumb,
+  .dark .scrollbar-fade[data-scroll-active]::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--color-neutral-400) 40%, transparent);
+  }
+}
+
+/**
+ * PROMPT 14.5 (UX Polish) — Sistema de transições padronizado.
+ *
+ * `tailwindcss-animate` não é dependência do projeto (docs/frontend/
+ * 13-design-system.md nunca a lista) — as classes utilitárias abaixo
+ * cobrem só o vocabulário realmente usado (Dialog/Sheet/Dropdown/Select/
+ * Tooltip/Tabs/Kanban/Tree), com o mesmo truque de `Radix Presence` que a
+ * lib usaria: o elemento some do DOM só depois que a animação de saída
+ * (`data-state="closed"`) termina, então basta a classe existir com
+ * `animation-name` distinto por estado. Duração sempre 150–250ms
+ * (nunca mais), `prefers-reduced-motion` desliga tudo de uma vez só.
+ */
+@layer utilities {
+  @keyframes overlay-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes overlay-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+  /**
+   * `DialogContent` centraliza via as classes Tailwind `-translate-x-1/2
+   * -translate-y-1/2` — no Tailwind v4 (`tailwindcss@4`, este projeto) essas
+   * classes usam a propriedade CSS nativa `translate` (não `transform`).
+   * `translate`/`scale`/`rotate` nativos e `transform` são propriedades
+   * DIFERENTES que se COMPÕEM (não se sobrescrevem) — animar aqui com
+   * `transform: translate(-50%, -50%) ...` somava um segundo -50% em cima
+   * do -50% já aplicado por `translate`, deslocando o modal em -100% (saía
+   * inteiro da viewport). Usar as mesmas propriedades nativas (`translate`/
+   * `scale`) resolve: o valor final do keyframe (`translate: -50% -50%`)
+   * coincide com o valor estático das classes, então o resultado em repouso
+   * é idêntico, sem duplicar o deslocamento.
+   */
+  @keyframes dialog-content-in {
+    from {
+      opacity: 0;
+      translate: -50% -48%;
+      scale: 0.96;
+    }
+    to {
+      opacity: 1;
+      translate: -50% -50%;
+      scale: 1;
+    }
+  }
+  @keyframes dialog-content-out {
+    from {
+      opacity: 1;
+      translate: -50% -50%;
+      scale: 1;
+    }
+    to {
+      opacity: 0;
+      translate: -50% -48%;
+      scale: 0.96;
+    }
+  }
+  @keyframes sheet-in-left {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+  @keyframes sheet-out-left {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-100%);
+    }
+  }
+  @keyframes sheet-in-right {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+  @keyframes sheet-out-right {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes popover-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes popover-out {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+  @keyframes dropdown-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  @keyframes dropdown-out {
+    from {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.96) translateY(-4px);
+    }
+  }
+  @keyframes collapse-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .transition-overlay {
+    animation-duration: 200ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+  }
+  .transition-overlay[data-state='open'] {
+    animation-name: overlay-fade-in;
+  }
+  .transition-overlay[data-state='closed'] {
+    animation-name: overlay-fade-out;
+    animation-duration: 150ms;
+  }
+
+  .transition-dialog {
+    animation-duration: 200ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+  }
+  .transition-dialog[data-state='open'] {
+    animation-name: dialog-content-in;
+  }
+  .transition-dialog[data-state='closed'] {
+    animation-name: dialog-content-out;
+    animation-duration: 150ms;
+  }
+
+  .transition-sheet-left {
+    animation-duration: 250ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+  }
+  .transition-sheet-left[data-state='open'] {
+    animation-name: sheet-in-left;
+  }
+  .transition-sheet-left[data-state='closed'] {
+    animation-name: sheet-out-left;
+    animation-duration: 200ms;
+  }
+
+  .transition-sheet-right {
+    animation-duration: 250ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+  }
+  .transition-sheet-right[data-state='open'] {
+    animation-name: sheet-in-right;
+  }
+  .transition-sheet-right[data-state='closed'] {
+    animation-name: sheet-out-right;
+    animation-duration: 200ms;
+  }
+
+  .transition-popover {
+    animation-duration: 150ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+  }
+  .transition-popover[data-state='open'] {
+    animation-name: popover-in;
+  }
+  .transition-popover[data-state='closed'] {
+    animation-name: popover-out;
+    animation-duration: 100ms;
+  }
+
+  .transition-dropdown {
+    animation-duration: 150ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+  }
+  .transition-dropdown[data-state='open'] {
+    animation-name: dropdown-in;
+  }
+  .transition-dropdown[data-state='closed'] {
+    animation-name: dropdown-out;
+    animation-duration: 100ms;
+  }
+
+  .transition-collapse {
+    animation: collapse-in 150ms ease-out both;
+  }
+
+  .transition-fade-in {
+    animation: overlay-fade-in 150ms ease-out both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transition-overlay,
+  .transition-dialog,
+  .transition-sheet-left,
+  .transition-sheet-right,
+  .transition-popover,
+  .transition-dropdown,
+  .transition-collapse,
+  .transition-fade-in {
+    animation: none !important;
+  }
+}
+@media print {
+  body.printing-legal-folder aside,
+  body.printing-legal-folder header,
+  body.printing-legal-folder [role='dialog'],
+  body.printing-legal-folder .print\:hidden {
+    display: none !important;
+  }
+
+  body.printing-legal-folder main {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+}
