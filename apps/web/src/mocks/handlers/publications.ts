@@ -13,6 +13,25 @@ let publications: Publication[] = [
     tipoComunicacao: 'Intimação',
     conteudo: 'Intimação para manifestação da parte autora no prazo legal.',
     tribunal: 'TJSP',
+    diario: 'Diário da Justiça Eletrônico Nacional',
+    cidade: 'São Paulo',
+    orgao: 'TJSP',
+    vara: '1ª Vara Cível',
+    nomeVinculo: 'Maria Oliveira',
+    oculta: false,
+    tarefasTotal: 0,
+    pastaJuridica: {
+      id: 'pasta-demo-1',
+      nome: 'MARIA/1',
+      numeroInterno: 'MARIA/1',
+      confidencial: false,
+    },
+    configuracaoCaptura: {
+      id: 'capture-demo-1',
+      numeroCnj: '1234567-19.2024.8.26.0001',
+      processoId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      pastaJuridicaId: 'pasta-demo-1',
+    },
     provider: 'DJEN',
     capturadoEm: '2026-08-09T12:00:00.000Z',
     lida: false,
@@ -40,6 +59,15 @@ let publications: Publication[] = [
     tipoComunicacao: 'Despacho',
     conteudo: 'Despacho sem conteúdo adicional disponibilizado pela fonte.',
     tribunal: 'TJSP',
+    diario: null,
+    cidade: null,
+    orgao: null,
+    vara: null,
+    nomeVinculo: null,
+    oculta: false,
+    tarefasTotal: 0,
+    pastaJuridica: null,
+    configuracaoCaptura: null,
     provider: 'DJEN',
     capturadoEm: '2026-08-06T15:00:00.000Z',
     lida: true,
@@ -63,11 +91,24 @@ function list(request: Request) {
   if (q === 'vazio') items = [];
   else if (q) {
     items = items.filter((item) =>
-      [item.numeroCnj, item.conteudo, item.processo?.titulo, item.processo?.cliente.nome]
+      [
+        item.numeroCnj,
+        item.conteudo,
+        item.nomeVinculo,
+        item.cidade,
+        item.diario,
+        item.orgao,
+        item.vara,
+        item.processo?.titulo,
+        item.processo?.cliente.nome,
+      ]
         .filter(Boolean)
         .some((value) => String(value).toLocaleLowerCase('pt-BR').includes(q)),
     );
   }
+  const cidade = (url.searchParams.get('cidade') ?? '').toLocaleLowerCase('pt-BR');
+  if (cidade)
+    items = items.filter((item) => (item.cidade ?? '').toLocaleLowerCase('pt-BR').includes(cidade));
   const situation = url.searchParams.get('situacao');
   if (situation) items = items.filter((item) => item.situacao === situation);
   if (url.searchParams.get('somenteNovas') === 'true')
@@ -129,6 +170,24 @@ export const publicationsHandlers = [
     if (!item) return new HttpResponse(null, { status: 404 });
     item.favorita = !item.favorita;
     return HttpResponse.json({ favorita: item.favorita });
+  }),
+  http.post(`${base}/publications/:id/visibility`, ({ params }) => {
+    const item = publications.find((publication) => publication.id === params.id);
+    if (!item) return new HttpResponse(null, { status: 404 });
+    item.oculta = !item.oculta;
+    return HttpResponse.json({ oculta: item.oculta });
+  }),
+  http.patch(`${base}/publications/:id/link`, async ({ params, request }) => {
+    const item = publications.find((publication) => publication.id === params.id);
+    if (!item) return new HttpResponse(null, { status: 404 });
+    const body = (await request.json()) as { pastaJuridicaId: string; processoId?: string };
+    item.pastaJuridica = {
+      id: body.pastaJuridicaId,
+      nome: 'MARIA/1',
+      numeroInterno: 'MARIA/1',
+      confidencial: false,
+    };
+    return HttpResponse.json({ id: item.id });
   }),
   http.delete(`${base}/publications/:id`, ({ params }) => {
     publications = publications.filter((publication) => publication.id !== params.id);

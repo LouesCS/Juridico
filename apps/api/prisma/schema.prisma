@@ -807,6 +807,7 @@ model PastaJuridica {
   movimentacoesExtrajudiciais MovimentacaoExtrajudicial[]
   eventosTimeline             EventoTimeline[]
   pedidos                     Pedido[]
+  publicacoes                 PublicacaoJudicialCapturada[]
 
   @@unique([escritorioId, numeroInterno], map: "uq_pastas_juridicas_escritorio_numero")
   @@unique([escritorioId, prefixo, sequencial], map: "uq_pastas_juridicas_escritorio_prefixo_sequencial")
@@ -962,6 +963,7 @@ model ConfiguracaoCaptura {
   processo      Processo?                       @relation(fields: [processoId], references: [id], onDelete: SetNull)
   pastaJuridica PastaJuridica?                  @relation(fields: [pastaJuridicaId], references: [id], onDelete: SetNull)
   historicos    HistoricoSincronizacaoCaptura[]
+  publicacoes   PublicacaoJudicialCapturada[]
 
   @@unique([escritorioId, numeroCnjSomenteDigitos], map: "uq_config_captura_escritorio_cnj")
   @@index([escritorioId, status], map: "idx_config_captura_escritorio_status")
@@ -1086,6 +1088,8 @@ model PublicacaoJudicialCapturada {
   id                     String                  @id @default(uuid()) @db.Uuid
   escritorioId           String                  @map("escritorio_id") @db.Uuid
   processoId             String?                 @map("processo_id") @db.Uuid
+  pastaJuridicaId        String?                 @map("pasta_juridica_id") @db.Uuid
+  configuracaoCapturaId  String?                 @map("configuracao_captura_id") @db.Uuid
   movimentoRelacionadoId String?                 @map("movimento_relacionado_id") @db.Uuid
   provider               ProvedorCapturaJudicial
   externalId             String                  @map("external_id")
@@ -1095,17 +1099,28 @@ model PublicacaoJudicialCapturada {
   tipoComunicacao        String?                 @map("tipo_comunicacao")
   conteudo               String?
   tribunal               String?
+  diario                  String?
+  cidade                  String?
+  orgao                   String?
+  vara                    String?
+  nomeVinculo             String?                 @map("nome_vinculo")
+  oculta                  Boolean                 @default(false)
   payloadBruto           Json?                   @map("payload_bruto")
   capturadoEm            DateTime                @default(now()) @map("capturado_em") @db.Timestamptz
 
   escritorio           Escritorio                  @relation(fields: [escritorioId], references: [id], onDelete: Cascade)
   processo             Processo?                   @relation(fields: [processoId], references: [id], onDelete: SetNull)
+  pastaJuridica        PastaJuridica?              @relation(fields: [pastaJuridicaId], references: [id], onDelete: SetNull)
+  configuracaoCaptura  ConfiguracaoCaptura?       @relation(fields: [configuracaoCapturaId], references: [id], onDelete: SetNull)
   movimentoRelacionado MovimentoJudicialCapturado? @relation(fields: [movimentoRelacionadoId], references: [id], onDelete: SetNull)
   estados              PublicacaoEstadoUsuario[]
 
   @@unique([escritorioId, provider, externalId], map: "uq_publicacao_capturada_external")
   @@index([escritorioId, numeroCnj, dataPublicacao(sort: Desc)], map: "idx_publicacao_capturada_cnj")
   @@index([escritorioId, movimentoRelacionadoId], map: "idx_publicacao_movimento")
+  @@index([escritorioId, pastaJuridicaId], map: "idx_publicacao_pasta")
+  @@index([escritorioId, configuracaoCapturaId], map: "idx_publicacao_configuracao_captura")
+  @@index([escritorioId, oculta, dataPublicacao(sort: Desc)], map: "idx_publicacao_visibilidade_data")
   @@map("publicacoes_judiciais_capturadas")
 }
 

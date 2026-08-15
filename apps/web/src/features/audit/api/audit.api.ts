@@ -5,7 +5,8 @@ export type AuditResourceType =
   | 'PROCESSO'
   | 'MOVIMENTACAO_JUDICIAL'
   | 'MOVIMENTACAO_EXTRAJUDICIAL'
-  | 'PEDIDO';
+  | 'PEDIDO'
+  | 'PUBLICACAO';
 
 export interface AuditItem {
   id: string;
@@ -30,8 +31,12 @@ export const auditApi = {
     limit = 10,
     period: 'RECENTES' | 'ANTIGAS' = 'RECENTES',
   ) =>
-    apiClient.get<{ items: AuditItem[]; total: number; page: number; limit: number; period: 'RECENTES' | 'ANTIGAS'; cutoff: string }>(
-      '/audit/context',
-      { query: { resourceType, resourceId, page, limit, period } },
-    ),
+    apiClient.get<{
+      items: AuditItem[];
+      total: number;
+      page: number;
+      limit: number;
+      period: 'RECENTES' | 'ANTIGAS';
+      cutoff: string;
+    }>('/audit/context', { query: { resourceType, resourceId, page, limit, period } }),
 };

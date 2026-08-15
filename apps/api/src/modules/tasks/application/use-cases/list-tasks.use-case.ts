@@ -68,6 +68,9 @@ export class ListTasksUseCase {
             },
           }
         : {}),
+      ...(query.publicacaoId
+        ? { vinculos: { some: { tipoRecurso: 'PUBLICACAO', recursoId: query.publicacaoId } } }
+        : {}),
       ...(query.favoritas ? { favoritos: { some: { membroId: user.membroId } } } : {}),
       ...(query.concluidas === true ? { concluidaEm: { not: null } } : {}),
       ...(query.pendentes === true

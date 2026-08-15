@@ -1,10 +1,10 @@
-import { Controller, Delete, Get, HttpCode, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthUser, CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../../common/decorators/require-permission.decorator';
 import { Audit } from '../../audit/audit-action.decorator';
 import { PublicationsService } from '../application/publications.service';
-import { listPublicationsSchema } from './schemas/publication.schemas';
+import { linkPublicationSchema, listPublicationsSchema } from './schemas/publication.schemas';
 
 @ApiTags('Publications')
 @Controller('publications')
@@ -46,6 +46,18 @@ export class PublicationsController {
   @Audit('FAVORITE_PUBLICATION', 'PUBLICACAO')
   favorite(@Param('id') id: string, @CurrentUser() u: AuthUser) {
     return this.service.toggleFavorite(u.escritorioId, u.membroId, id);
+  }
+  @Patch(':id/link')
+  @RequirePermission('publication:update')
+  @Audit('LINK_PUBLICATION', 'PUBLICACAO')
+  link(@Param('id') id: string, @Body() body: unknown, @CurrentUser() u: AuthUser) {
+    return this.service.link(u.escritorioId, u.membroId, id, linkPublicationSchema.parse(body));
+  }
+  @Post(':id/visibility')
+  @RequirePermission('publication:update')
+  @Audit('CHANGE_PUBLICATION_VISIBILITY', 'PUBLICACAO')
+  visibility(@Param('id') id: string, @CurrentUser() u: AuthUser) {
+    return this.service.toggleHidden(u.escritorioId, u.membroId, id);
   }
   @Delete(':id')
   @RequirePermission('publication:delete')

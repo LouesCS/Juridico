@@ -16,7 +16,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { EmptyState } from '@/components/feedback/empty-state';
 import { useTaskTemplates } from '@/features/configuration/api/queries';
 import { useMembers } from '@/features/team';
@@ -28,7 +34,14 @@ import { useCreateTaskFromTemplate } from '../api/mutations';
  * `configurationApi.listTaskTemplates()`, nunca duplica o cadastro de
  * modelos (isso continua só em `/configuracoes/modelos-tarefa`).
  */
-export function CreateTaskFromTemplateDialog() {
+export function CreateTaskFromTemplateDialog({
+  fixedVinculos = [],
+}: {
+  fixedVinculos?: Array<{
+    tipoRecurso: import('../api/tasks.api').TaskLinkType;
+    recursoId: string;
+  }>;
+}) {
   const [open, setOpen] = React.useState(false);
   const [modeloId, setModeloId] = React.useState('');
   const [responsavelPrincipalId, setResponsavelPrincipalId] = React.useState('');
@@ -56,6 +69,7 @@ export function CreateTaskFromTemplateDialog() {
         modeloId,
         dataVencimento: dataVencimento || undefined,
         responsavelPrincipalId: responsavelPrincipalId || undefined,
+        vinculos: fixedVinculos,
       },
       {
         onSuccess: (result) => {
@@ -72,8 +86,7 @@ export function CreateTaskFromTemplateDialog() {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <ClipboardCheck className="size-4" aria-hidden="true" />
-          A partir de um modelo
+          <ClipboardCheck className="size-4" aria-hidden="true" />A partir de um modelo
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -125,7 +138,9 @@ export function CreateTaskFromTemplateDialog() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="modelo-data-vencimento">Data de vencimento (opcional — sobrepõe o prazo padrão do modelo)</Label>
+              <Label htmlFor="modelo-data-vencimento">
+                Data de vencimento (opcional — sobrepõe o prazo padrão do modelo)
+              </Label>
               <Input
                 id="modelo-data-vencimento"
                 type="date"

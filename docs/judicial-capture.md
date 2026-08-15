@@ -34,7 +34,7 @@ A página oficial da API exige execução de JavaScript e, nas fontes oficiais c
 
 Movimentos são convertidos para `CapturedJudicialMovement`. A chave externa DataJud é SHA-256 de identificador oficial do processo + código + data + nome + posição. A restrição única `(escritorioId, provider, externalId)` e `createMany(skipDuplicates)` evitam importação repetida. O payload bruto mínimo do movimento pode ser guardado em JSON para suporte/reprocessamento, mas nunca é usado diretamente pela UI.
 
-`PublicacaoJudicialCapturada` existe como persistência preparada para a próxima Sprint, sem página de Publicações e sem registros artificiais. Movimentações também não ganharam módulo/tela nesta Sprint.
+`PublicacaoJudicialCapturada` usa a chave única `(escritorioId, provider, externalId)` e possui rastreabilidade opcional para `ConfiguracaoCaptura`. O fluxo DataJud executável ainda produz apenas Movimentações; o provider DJEN não possui contrato estável validado e, portanto, nenhuma Publicação é fabricada. A página de Publicações apenas consome registros capturados/importados por infraestrutura oficial.
 
 ## Tenant, permissões e exclusão
 

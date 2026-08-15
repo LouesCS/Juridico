@@ -1,8 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../shared/infrastructure/database/prisma.service';
 import { TimelineRecorderService } from '../../timeline/application/timeline-recorder.service';
-import { ListPublicationsQuery } from '../presentation/schemas/publication.schemas';
+import {
+  LinkPublicationDto,
+  ListPublicationsQuery,
+} from '../presentation/schemas/publication.schemas';
 
 const newSince = () => new Date(Date.now() - 7 * 86_400_000);
 
@@ -13,11 +16,11 @@ export class PublicationsService {
     private readonly timeline: TimelineRecorderService,
   ) {}
 
-  private buildWhere(
+  private async buildWhere(
     escritorioId: string,
     membroId: string,
     q: ListPublicationsQuery,
-  ): Prisma.PublicacaoJudicialCapturadaWhereInput {
+  ): Promise<Prisma.PublicacaoJudicialCapturadaWhereInput> {
     const unread = { none: { membroId, lidaEm: { not: null } } };
     const read = { some: { membroId, lidaEm: { not: null } } };
     const state =
@@ -26,13 +29,52 @@ export class PublicationsService {
         : q.situacao === 'LIDA'
           ? read
           : undefined;
+    const taskPublicationIds = q.vinculoTarefa
+      ? (
+          await this.prisma.client.tarefaVinculo.findMany({
+            where: { tipoRecurso: 'PUBLICACAO', tarefa: { escritorioId, excluidoEm: null } },
+            select: { recursoId: true },
+          })
+        ).map((row) => row.recursoId)
+      : [];
+    const timelinePublicationIds = q.timeline
+      ? (
+          await this.prisma.client.eventoTimeline.findMany({
+            where: {
+              escritorioId,
+              excluidoEm: null,
+              entidadeRelacionadaTipo: 'PUBLICACAO',
+              entidadeRelacionadaId: { not: null },
+            },
+            select: { entidadeRelacionadaId: true },
+            distinct: ['entidadeRelacionadaId'],
+          })
+        ).flatMap((row) => (row.entidadeRelacionadaId ? [row.entidadeRelacionadaId] : []))
+      : [];
     return {
       escritorioId,
       processoId: q.processoId,
+      pastaJuridicaId:
+        q.pastaId ??
+        (q.vinculoPasta === 'COM' ? { not: null } : q.vinculoPasta === 'SEM' ? null : undefined),
+      oculta:
+        q.visualizacao === 'OCULTAS' ? true : q.visualizacao === 'NAO_OCULTAS' ? false : undefined,
+      cidade: q.cidade ? { contains: q.cidade, mode: 'insensitive' } : undefined,
+      diario: q.diario ? { contains: q.diario, mode: 'insensitive' } : undefined,
+      nomeVinculo: q.nomeVinculo ? { contains: q.nomeVinculo, mode: 'insensitive' } : undefined,
+      orgao: q.orgao ? { contains: q.orgao, mode: 'insensitive' } : undefined,
+      vara: q.vara ? { contains: q.vara, mode: 'insensitive' } : undefined,
       OR: q.q
         ? [
-            { numeroCnj: { contains: q.q.replace(/\D/g, '') } },
+            ...(q.q.replace(/\D/g, '')
+              ? [{ numeroCnj: { contains: q.q.replace(/\D/g, '') } }]
+              : []),
             { conteudo: { contains: q.q, mode: 'insensitive' } },
+            { nomeVinculo: { contains: q.q, mode: 'insensitive' } },
+            { cidade: { contains: q.q, mode: 'insensitive' } },
+            { diario: { contains: q.q, mode: 'insensitive' } },
+            { orgao: { contains: q.q, mode: 'insensitive' } },
+            { vara: { contains: q.q, mode: 'insensitive' } },
             { tribunal: { contains: q.q, mode: 'insensitive' } },
             { tipoComunicacao: { contains: q.q, mode: 'insensitive' } },
             { processo: { titulo: { contains: q.q, mode: 'insensitive' } } },
@@ -72,11 +114,62 @@ export class PublicationsService {
               : undefined,
       movimentoRelacionadoId: q.somenteComMovimentacao ? { not: null } : undefined,
       estados: state,
+      pastaJuridica:
+        q.clientePastaId || q.encarregadoPastaId || q.parteContrariaPastaId
+          ? {
+              excluidoEm: null,
+              encarregadoId: q.encarregadoPastaId,
+              AND: q.clientePastaId
+                ? [
+                    {
+                      OR: [
+                        { clientePrincipalId: q.clientePastaId },
+                        {
+                          vinculosClientes: {
+                            some: { clienteId: q.clientePastaId, tipo: 'CLIENTE' },
+                          },
+                        },
+                      ],
+                    },
+                  ]
+                : undefined,
+              OR: q.parteContrariaPastaId
+                ? [
+                    { parteContrariaPrincipalId: q.parteContrariaPastaId },
+                    {
+                      vinculosClientes: {
+                        some: { clienteId: q.parteContrariaPastaId, tipo: 'PARTE_CONTRARIA' },
+                      },
+                    },
+                  ]
+                : undefined,
+            }
+          : undefined,
+      AND: [
+        ...(q.vinculoTarefa
+          ? [
+              {
+                id: {
+                  [q.vinculoTarefa === 'COM' ? 'in' : 'notIn']: taskPublicationIds,
+                },
+              },
+            ]
+          : []),
+        ...(q.timeline
+          ? [
+              {
+                id: {
+                  [q.timeline === 'COM' ? 'in' : 'notIn']: timelinePublicationIds,
+                },
+              },
+            ]
+          : []),
+      ],
     };
   }
 
   async list(escritorioId: string, membroId: string, q: ListPublicationsQuery) {
-    const where = this.buildWhere(escritorioId, membroId, q);
+    const where = await this.buildWhere(escritorioId, membroId, q);
     const orderBy: Prisma.PublicacaoJudicialCapturadaOrderByWithRelationInput =
       q.sort === 'cliente'
         ? { processo: { cliente: { nome: 'asc' } } }
@@ -98,6 +191,12 @@ export class PublicationsService {
           pastas: { select: { id: true, nome: true }, take: 1 },
           responsavelPrincipalId: true,
         },
+      },
+      pastaJuridica: {
+        select: { id: true, nome: true, numeroInterno: true, confidencial: true },
+      },
+      configuracaoCaptura: {
+        select: { id: true, numeroCnj: true, processoId: true, pastaJuridicaId: true },
       },
       movimentoRelacionado: {
         select: { id: true, dataMovimento: true, descricao: true, tipo: true },
@@ -123,8 +222,25 @@ export class PublicationsService {
         select: { criadoEm: true },
       }),
     ]);
+    const taskCounts = items.length
+      ? await this.prisma.client.tarefaVinculo.groupBy({
+          by: ['recursoId'],
+          where: {
+            tipoRecurso: 'PUBLICACAO',
+            recursoId: { in: items.map((item) => item.id) },
+            tarefa: { escritorioId, excluidoEm: null },
+          },
+          _count: { _all: true },
+        })
+      : [];
+    const taskCountByPublication = new Map(
+      taskCounts.map((row) => [row.recursoId, row._count._all]),
+    );
     return {
-      items: items.map((i) => this.dto(i)),
+      items: items.map((i) => ({
+        ...this.dto(i),
+        tarefasTotal: taskCountByPublication.get(i.id) ?? 0,
+      })),
       total,
       page: q.page,
       limit: q.limit,
@@ -151,12 +267,78 @@ export class PublicationsService {
             configuracoesCaptura: { select: { id: true, status: true }, take: 1 },
           },
         },
+        pastaJuridica: {
+          select: { id: true, nome: true, numeroInterno: true, confidencial: true },
+        },
+        configuracaoCaptura: {
+          select: { id: true, numeroCnj: true, processoId: true, pastaJuridicaId: true },
+        },
         movimentoRelacionado: true,
         estados: { where: { membroId }, take: 1 },
       },
     });
     if (!item) throw new NotFoundException('Publicação não encontrada.');
-    return this.dto(item);
+    const tarefasTotal = await this.prisma.client.tarefaVinculo.count({
+      where: {
+        tipoRecurso: 'PUBLICACAO',
+        recursoId: id,
+        tarefa: { escritorioId, excluidoEm: null },
+      },
+    });
+    return { ...this.dto(item), tarefasTotal };
+  }
+
+  async link(escritorioId: string, membroId: string, id: string, input: LinkPublicationDto) {
+    const publication = await this.find(escritorioId, id);
+    const folder = await this.prisma.client.pastaJuridica.findFirst({
+      where: { id: input.pastaJuridicaId, escritorioId, excluidoEm: null },
+      select: { id: true },
+    });
+    if (!folder) throw new NotFoundException('Pasta Jurídica não encontrada.');
+    if (input.processoId) {
+      const validProcess = await this.prisma.client.pastaJuridicaProcesso.findFirst({
+        where: {
+          pastaJuridicaId: folder.id,
+          processoId: input.processoId,
+          processo: { escritorioId, tipo: 'JUDICIAL', excluidoEm: null },
+        },
+        select: { processoId: true },
+      });
+      if (!validProcess)
+        throw new BadRequestException('O Processo Judicial não pertence à Pasta selecionada.');
+    }
+    const updated = await this.prisma.client.publicacaoJudicialCapturada.update({
+      where: { id },
+      data: { pastaJuridicaId: folder.id, processoId: input.processoId ?? null },
+      select: { id: true, pastaJuridicaId: true, processoId: true },
+    });
+    await this.event(
+      escritorioId,
+      { ...publication, processoId: updated.processoId },
+      'Vínculo da Publicação atualizado',
+      membroId,
+    );
+    return updated;
+  }
+
+  async toggleHidden(escritorioId: string, membroId: string, id: string) {
+    const publication = await this.prisma.client.publicacaoJudicialCapturada.findFirst({
+      where: { id, escritorioId },
+      select: { id: true, processoId: true, numeroCnj: true, oculta: true },
+    });
+    if (!publication) throw new NotFoundException('Publicação não encontrada.');
+    const oculta = !publication.oculta;
+    await this.prisma.client.publicacaoJudicialCapturada.update({
+      where: { id },
+      data: { oculta },
+    });
+    await this.event(
+      escritorioId,
+      publication,
+      oculta ? 'Publicação ocultada' : 'Publicação desocultada',
+      membroId,
+    );
+    return { oculta };
   }
 
   async markRead(escritorioId: string, membroId: string, id: string) {
@@ -200,7 +382,7 @@ export class PublicationsService {
 
   async export(escritorioId: string, membroId: string, q: ListPublicationsQuery) {
     const items = await this.prisma.client.publicacaoJudicialCapturada.findMany({
-      where: this.buildWhere(escritorioId, membroId, q),
+      where: await this.buildWhere(escritorioId, membroId, q),
       include: {
         processo: { select: { titulo: true, cliente: { select: { nome: true } } } },
         estados: { where: { membroId }, take: 1 },

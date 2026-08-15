@@ -109,6 +109,14 @@ export const createTaskFromTemplateSchema = z
     modeloId: z.string().uuid(),
     dataVencimento: dataSchema.optional(),
     responsavelPrincipalId: z.string().uuid().optional(),
+    vinculos: z
+      .array(
+        z
+          .object({ tipoRecurso: z.enum(TIPO_VINCULO_TAREFA), recursoId: z.string().uuid() })
+          .strict(),
+      )
+      .max(20)
+      .optional(),
   })
   .strict();
 export type CreateTaskFromTemplateDto = z.infer<typeof createTaskFromTemplateSchema>;
@@ -125,6 +133,7 @@ export const listTasksQuerySchema = z
     clienteId: z.string().uuid().optional(),
     processoId: z.string().uuid().optional(),
     pastaJuridicaId: z.string().uuid().optional(),
+    publicacaoId: z.string().uuid().optional(),
     concluidas: z.coerce.boolean().optional(),
     pendentes: z.coerce.boolean().optional(),
     atrasadas: z.coerce.boolean().optional(),

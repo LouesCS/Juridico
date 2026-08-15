@@ -4,6 +4,7 @@ import { DomainError, Result } from '../../../../shared/domain/result';
 import { TimelineRecorderService } from '../../../timeline/application/timeline-recorder.service';
 import { CreateTaskFromTemplateDto } from '../../presentation/schemas/task.schemas';
 import { TaskValueSetsService } from '../task-value-sets.service';
+import { RECURSOS_VALIDAVEIS } from './task-links.use-cases';
 
 const PRIORIDADE_LABEL: Record<string, string> = {
   BAIXA: 'Baixa',
@@ -37,6 +38,12 @@ export class CreateTaskFromTemplateUseCase {
     });
     if (!modelo)
       return Result.fail(new DomainError('NOT_FOUND', 'Modelo de tarefa não encontrado.'));
+    const vinculos = dto.vinculos ?? [];
+    for (const vinculo of vinculos) {
+      const validator = RECURSOS_VALIDAVEIS[vinculo.tipoRecurso];
+      if (validator && !(await validator(this.prisma, escritorioId, vinculo.recursoId)))
+        return Result.fail(new DomainError('NOT_FOUND', 'Recurso vinculado não encontrado.'));
+    }
 
     const [statusPadrao, prioridadePadrao] = await Promise.all([
       this.valueSets.ensureStatusValueSet(escritorioId),
@@ -69,6 +76,7 @@ export class CreateTaskFromTemplateUseCase {
         checklist: {
           create: modelo.checklist.map((titulo, ordem) => ({ titulo, obrigatorio: false, ordem })),
         },
+        vinculos: { create: vinculos },
       },
       select: { id: true },
     });

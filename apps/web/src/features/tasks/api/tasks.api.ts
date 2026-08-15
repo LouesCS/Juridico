@@ -83,6 +83,7 @@ export interface ListTasksParams {
   clienteId?: string;
   processoId?: string;
   pastaJuridicaId?: string;
+  publicacaoId?: string;
   concluidas?: boolean;
   pendentes?: boolean;
   atrasadas?: boolean;
@@ -191,6 +192,7 @@ export interface CreateTaskFromTemplateInput {
   modeloId: string;
   dataVencimento?: string;
   responsavelPrincipalId?: string;
+  vinculos?: Array<{ tipoRecurso: TaskLinkType; recursoId: string }>;
 }
 
 export interface TaskConfigDTO {

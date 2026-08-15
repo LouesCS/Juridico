@@ -10,6 +10,7 @@ const contextQuerySchema = z.object({
     'MOVIMENTACAO_JUDICIAL',
     'MOVIMENTACAO_EXTRAJUDICIAL',
     'PEDIDO',
+    'PUBLICACAO',
   ]),
   resourceId: z.string().uuid(),
   page: z.coerce.number().int().min(1).default(1),

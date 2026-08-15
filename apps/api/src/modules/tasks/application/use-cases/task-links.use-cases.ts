@@ -35,6 +35,11 @@ export const RECURSOS_VALIDAVEIS: Record<
       where: { id, escritorioId },
       select: { id: true },
     })),
+  PUBLICACAO: async (prisma, escritorioId, id) =>
+    !!(await prisma.client.publicacaoJudicialCapturada.findFirst({
+      where: { id, escritorioId },
+      select: { id: true },
+    })),
   MOVIMENTACAO_EXTRAJUDICIAL: async (prisma, escritorioId, id) =>
     !!(await prisma.client.movimentacaoExtrajudicial.findFirst({
       where: { id, escritorioId },

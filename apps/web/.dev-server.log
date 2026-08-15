@@ -4,23 +4,298 @@
 
    ▲ Next.js 15.5.22
    - Local:        http://localhost:3000
-   - Network:      http://172.31.44.128:3000
+   - Network:      http://192.168.34.159:3000
    - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 12.9s
+ ✓ Ready in 2.9s
  ○ Compiling /middleware ...
- ✓ Compiled /middleware in 849ms (116 modules)
+ ✓ Compiled /middleware in 680ms (116 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /publicacoes in 14.4s (2059 modules)
+ GET /api/v1/publications?sort=-dataPublicacao&page=1&limit=20 404 in 16379ms
+ GET /api/v1/me 404 in 16382ms
+ GET /publicacoes 200 in 15082ms
+ GET /api/v1/me 404 in 210ms
+ ✓ Compiled in 1051ms (2058 modules)
+ GET /publicacoes 200 in 263ms
+ ✓ Compiled in 305ms (935 modules)
+ GET /publicacoes 200 in 94ms
+ ✓ Compiled in 294ms (935 modules)
+ GET /publicacoes 200 in 64ms
  ○ Compiling /login ...
- ✓ Compiled /login in 9.6s (1567 modules)
- GET /login?next=%2F 200 in 13396ms
- GET /login?next=%2F 200 in 398ms
+ ✓ Compiled /login in 1694ms (2050 modules)
+ GET /login?next=%2Fpublicacoes 200 in 2101ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 737ms (1129 modules)
+ GET /api/v1/me 404 in 1720ms
+ GET /api/v1/publications?sort=-dataPublicacao&page=1&limit=20 404 in 1720ms
+ GET /publicacoes 200 in 624ms
+ GET /api/v1/me 404 in 178ms
+ ○ Compiling /movimentacoes-extrajudiciais ...
+ ✓ Compiled /movimentacoes-extrajudiciais in 2.9s (2063 modules)
+ GET /movimentacoes-extrajudiciais 200 in 3317ms
+ GET /publicacoes 200 in 179ms
+ GET /movimentacoes-extrajudiciais 200 in 94ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 427ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 184ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 128ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 120ms
+ ✓ Compiled in 1551ms (2076 modules)
+ GET /movimentacoes-extrajudiciais 200 in 243ms
+ ✓ Compiled in 366ms (942 modules)
+ GET /movimentacoes-extrajudiciais 200 in 46ms
+ ✓ Compiled in 1462ms (2076 modules)
+ GET /movimentacoes-extrajudiciais 200 in 343ms
+ ✓ Compiled in 1047ms (942 modules)
+ GET /movimentacoes-extrajudiciais 200 in 142ms
+ ✓ Compiled in 710ms (942 modules)
+ GET /movimentacoes-extrajudiciais 200 in 101ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 4.3s (1139 modules)
+ GET /login 200 in 5114ms
  ○ Compiling /api/demo/login ...
- ✓ Compiled /api/demo/login in 1892ms (1584 modules)
- POST /api/demo/login 200 in 2258ms
+ ✓ Compiled /api/demo/login in 2.3s (2084 modules)
+ POST /api/demo/login 200 in 2708ms
  ○ Compiling / ...
- ✓ Compiled / in 1810ms (2131 modules)
- GET / 200 in 2094ms
+ ✓ Compiled / in 3.7s (2189 modules)
+ GET / 200 in 4145ms
+ GET /publicacoes 200 in 975ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1309ms (1212 modules)
+ GET /api/v1/me 404 in 2489ms
+ GET /api/v1/extrajudicial-movements?q=&cliente=&processo=&pasta=&tipo=&origem=&status=&favoritas=false&pendentes=false&concluidas=false&sort=-dataMovimentacao&page=1&limit=20 404 in 2486ms
+ GET /movimentacoes-extrajudiciais 200 in 758ms
+ GET /api/v1/me 404 in 156ms
+ GET /publicacoes 200 in 151ms
+ ✓ Compiled in 1822ms (2131 modules)
+ GET /publicacoes 200 in 227ms
+ ✓ Compiled in 864ms (2131 modules)
+ GET /publicacoes 200 in 296ms
+ ✓ Compiled in 712ms (2131 modules)
+ GET /publicacoes 200 in 182ms
+ ✓ Compiled in 1275ms (2131 modules)
+ GET /publicacoes 200 in 141ms
+ ✓ Compiled in 634ms (2131 modules)
+ GET /publicacoes 200 in 139ms
+ ✓ Compiled in 350ms (992 modules)
+ GET /publicacoes 200 in 59ms
+ ✓ Compiled in 481ms (992 modules)
+ GET /publicacoes 200 in 58ms
+ ✓ Compiled in 736ms (2131 modules)
+ GET /publicacoes 200 in 101ms
+ ✓ Compiled in 818ms (2131 modules)
+ GET /publicacoes 200 in 131ms
+ ✓ Compiled in 827ms (992 modules)
+ GET /publicacoes 200 in 143ms
+ GET /login 200 in 662ms
+ ○ Compiling /api/demo/login ...
+ ✓ Compiled /api/demo/login in 1580ms (1156 modules)
+ POST /api/demo/login 200 in 1868ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1107ms (1211 modules)
+ GET / 200 in 1458ms
+ GET /publicacoes 200 in 1226ms
+ GET /login 200 in 315ms
+ POST /api/demo/login 200 in 68ms
+ GET / 200 in 118ms
+ GET /publicacoes 200 in 326ms
+ GET /login 200 in 360ms
+ POST /api/demo/login 200 in 69ms
+ GET / 200 in 113ms
+ GET /publicacoes 200 in 306ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.1s (1212 modules)
+ GET /api/v1/me 404 in 2956ms
+ ✓ Compiled in 2.4s (992 modules)
+ GET /publicacoes 200 in 251ms
+ GET /login 200 in 356ms
+ POST /api/demo/login 200 in 89ms
+ GET / 200 in 155ms
+ GET /publicacoes 200 in 608ms
+ GET /login 200 in 238ms
+ POST /api/demo/login 200 in 51ms
+ GET / 200 in 105ms
+ GET /publicacoes 200 in 300ms
+ GET /api/v1/me 404 in 128ms
+ GET /login 200 in 235ms
+ POST /api/demo/login 200 in 53ms
+ GET / 200 in 84ms
+ GET /publicacoes 200 in 324ms
+ GET /api/v1/publications?sort=-dataPublicacao&page=1&limit=20 404 in 177ms
+ ✓ Compiled in 1242ms (2204 modules)
+ GET /publicacoes 200 in 224ms
+ GET /api/v1/publications?sort=-dataPublicacao&page=1&limit=20 404 in 212ms
+ GET /api/v1/publications?sort=-dataPublicacao&page=1&limit=20 404 in 135ms
+ GET /publicacoes 200 in 751ms
+ GET /api/v1/me 404 in 156ms
+ ✓ Compiled in 967ms (992 modules)
+ GET /publicacoes 200 in 128ms
+ GET /movimentacoes-extrajudiciais 200 in 251ms
+ ✓ Compiled in 752ms (992 modules)
+ GET /movimentacoes-extrajudiciais 200 in 141ms
+ GET /publicacoes 200 in 104ms
+ GET /login 200 in 308ms
+ POST /api/demo/login 200 in 93ms
+ GET / 200 in 208ms
+ GET /publicacoes 200 in 774ms
+ GET /movimentacoes-extrajudiciais 200 in 342ms
+ GET /api/v1/me 404 in 253ms
+ GET /login 200 in 269ms
+ POST /api/demo/login 200 in 81ms
+ GET / 200 in 117ms
+ GET /publicacoes 200 in 424ms
+ GET /login 200 in 604ms
+ POST /api/demo/login 200 in 67ms
+ GET / 200 in 98ms
+ GET /publicacoes 200 in 522ms
+ GET /api/v1/me 404 in 318ms
+ ✓ Compiled in 649ms (992 modules)
+ GET /movimentacoes-extrajudiciais 200 in 157ms
+ GET /login 200 in 470ms
  ○ Compiling /processos-judiciais ...
- ✓ Compiled /processos-judiciais in 2.1s (2410 modules)
- GET /processos-judiciais 200 in 2405ms
+ ✓ Compiled /processos-judiciais in 18.7s (2443 modules)
+ GET /processos-judiciais 200 in 20542ms
+ POST /login?next=%2Fapi%2Fv1%2Fauth%2Flogin 200 in 20029ms
+ GET /publicacoes 200 in 182ms
+ GET /login 200 in 253ms
+ POST /api/demo/login 200 in 128ms
+ GET / 200 in 189ms
+ GET /publicacoes 200 in 1165ms
+ GET /api/v1/me 404 in 449ms
+ GET /login 200 in 345ms
+ POST /login?next=%2Fapi%2Fv1%2Fauth%2Flogin 200 in 301ms
+ GET /login 200 in 405ms
+ POST /api/demo/login 200 in 128ms
+ GET / 200 in 107ms
+ GET /publicacoes 200 in 582ms
+ ✓ Compiled in 807ms (1115 modules)
+ GET /publicacoes 200 in 53ms
+ GET /login 200 in 123ms
+ POST /api/demo/login 200 in 23ms
+ GET / 200 in 36ms
+ GET /publicacoes 200 in 272ms
+ GET /login 200 in 427ms
+ POST /api/demo/login 200 in 81ms
+ GET / 200 in 145ms
+ GET /publicacoes 200 in 956ms
+ GET /login 200 in 606ms
+ GET /api/v1/me 404 in 514ms
+ GET /api/v1/publications?sort=-dataPublicacao&page=1&limit=20 404 in 507ms
+ GET /api/v1/me 404 in 330ms
+ POST /login?next=%2Fapi%2Fv1%2Fauth%2Flogin 200 in 431ms
+ GET /login 200 in 332ms
+ POST /api/demo/login 200 in 62ms
+ GET / 200 in 136ms
+ GET /publicacoes 200 in 356ms
+ GET /login?next=%2Fpublicacoes 200 in 189ms
+ GET /api/v1/publications?sort=-dataPublicacao&page=1&limit=20 404 in 256ms
+ GET /api/v1/me 404 in 250ms
+ GET /publicacoes 200 in 369ms
+ GET /api/v1/me 404 in 146ms
+ ✓ Compiled in 1463ms (2399 modules)
+ GET /publicacoes 200 in 224ms
+ ✓ Compiled in 328ms (1115 modules)
+ GET /publicacoes 200 in 48ms
+ ✓ Compiled in 324ms (1115 modules)
+ GET /publicacoes 200 in 60ms
+ GET /login 200 in 356ms
+ ✓ Compiled /api/demo/login in 352ms (1301 modules)
+ POST /api/demo/login 200 in 486ms
+ ✓ Compiled / in 365ms (1342 modules)
+ GET / 200 in 552ms
+ GET /movimentacoes-extrajudiciais 200 in 474ms
+ GET /publicacoes 200 in 185ms
+ GET /api/v1/me 404 in 101ms
+ GET /api/v1/publications?sort=-dataPublicacao&page=1&limit=20 404 in 174ms
+ GET /login 200 in 293ms
+ POST /api/demo/login 200 in 122ms
+ GET / 200 in 148ms
+ GET /publicacoes 200 in 451ms
+ GET /login 200 in 328ms
+ POST /login?next=%2Fapi%2Fv1%2Fauth%2Flogin 200 in 741ms
+ GET /login 200 in 274ms
+ POST /api/demo/login 200 in 92ms
+ GET / 200 in 145ms
+ GET /publicacoes 200 in 414ms
+ GET /login 200 in 287ms
+ POST /api/demo/login 200 in 58ms
+ GET / 200 in 118ms
+ GET /publicacoes 200 in 393ms
+ GET /login 200 in 260ms
+ POST /api/demo/login 200 in 57ms
+ GET / 200 in 134ms
+ GET /movimentacoes-extrajudiciais 200 in 361ms
+ GET /publicacoes 200 in 299ms
+ GET /api/v1/publications?sort=-dataPublicacao&page=1&limit=20 404 in 141ms
+ GET /publicacoes 200 in 293ms
+ GET /api/v1/me 404 in 139ms
+ GET /movimentacoes-extrajudiciais 200 in 92ms
+ ○ Compiling /movimentacoes-judiciais ...
+ ✓ Compiled /movimentacoes-judiciais in 5.5s (2468 modules)
+ GET /movimentacoes-judiciais 200 in 6181ms
+ GET /movimentacoes-judiciais 200 in 169ms
+ ○ Compiling /pastas ...
+ ✓ Compiled /pastas in 2.6s (2410 modules)
+ GET /pastas 200 in 3285ms
+ ○ Compiling /processos-extrajudiciais ...
+ ✓ Compiled /processos-extrajudiciais in 1652ms (2412 modules)
+ GET /processos-extrajudiciais 200 in 1992ms
+ GET /processos-judiciais 200 in 195ms
+ GET /publicacoes 200 in 171ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.2s (2411 modules)
+ ✓ Compiled in 1ms (1289 modules)
+ GET /api/v1/publications?sort=-dataPublicacao&page=1&limit=20 404 in 2380ms
+ GET /publicacoes 200 in 1150ms
+ ✓ Compiled in 410ms (1123 modules)
+ GET /publicacoes 200 in 45ms
+ ✓ Compiled in 330ms (1123 modules)
+ GET /publicacoes 200 in 80ms
+ ✓ Compiled in 358ms (1123 modules)
+ GET /publicacoes 200 in 50ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 847ms (1293 modules)
+ GET /login 200 in 1377ms
+ ○ Compiling /api/demo/login ...
+ ✓ Compiled /api/demo/login in 1889ms (1310 modules)
+ POST /api/demo/login 200 in 2502ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.3s (1349 modules)
+ GET / 200 in 2593ms
+ GET /publicacoes 200 in 864ms
+ GET /login 200 in 284ms
+ POST /api/demo/login 200 in 49ms
+ GET / 200 in 51ms
+ GET /publicacoes 200 in 283ms
+ GET /login 200 in 216ms
+ POST /api/demo/login 200 in 40ms
+ GET / 200 in 70ms
+ GET /publicacoes 200 in 339ms
+ GET /login 200 in 355ms
+ POST /api/demo/login 200 in 52ms
+ GET / 200 in 74ms
+ GET /publicacoes 200 in 360ms
+ GET /login 200 in 210ms
+ POST /api/demo/login 200 in 42ms
+ GET / 200 in 61ms
+ GET /publicacoes 200 in 335ms
+ GET /login 200 in 232ms
+ POST /api/demo/login 200 in 22ms
+ GET / 200 in 34ms
+ ○ Compiling /movimentacoes-extrajudiciais ...
+ ✓ Compiled /movimentacoes-extrajudiciais in 2.2s (1358 modules)
+ GET /movimentacoes-extrajudiciais 200 in 3790ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 801ms (1359 modules)
+ GET /api/v1/me 404 in 1389ms
+ GET /publicacoes 200 in 799ms
+ GET /api/v1/publications?sort=-dataPublicacao&page=1&limit=20 404 in 644ms
+ GET /api/v1/me 404 in 653ms
+ GET /publicacoes 200 in 489ms
+ GET /api/v1/me 404 in 262ms
+ ○ Compiling /publicacoes/[id] ...
+ ✓ Compiled /publicacoes/[id] in 5.8s (2469 modules)
+ GET /publicacoes/publication-1 200 in 12803ms
+ GET /publicacoes?publicacao=publication-1 200 in 201ms
+ ○ Compiling /processos/[id] ...
